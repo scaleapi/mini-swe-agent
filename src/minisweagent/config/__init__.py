@@ -15,6 +15,7 @@ def get_config_path(config_spec: str | Path) -> Path:
         Path(config_spec),
         Path(os.getenv("MSWEA_CONFIG_DIR", ".")) / config_spec,
         builtin_config_dir / config_spec,
+        builtin_config_dir.parent / config_spec,
         builtin_config_dir / "extra" / config_spec,
     ]
     for candidate in candidates:

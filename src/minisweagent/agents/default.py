@@ -1,5 +1,6 @@
 """Basic agent class. See https://mini-swe-agent.com/latest/advanced/control_flow/ for visual explanation."""
 
+import logging
 import re
 import subprocess
 from collections.abc import Callable
@@ -8,6 +9,8 @@ from dataclasses import asdict, dataclass
 from jinja2 import StrictUndefined, Template
 
 from minisweagent import Environment, Model
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -69,6 +72,9 @@ class DefaultAgent:
         self.model = model
         self.env = env
         self.extra_template_vars = {}
+        # Determine repository directory for git operations
+        # SWEBPro repos are standardized to be in /app
+        self.repo_dir = "/app"
 
     def render_template(self, template: str, **kwargs) -> str:
         template_vars = (
@@ -83,8 +89,8 @@ class DefaultAgent:
     def add_message(self, role: str, content: str, **kwargs):
         self.messages.append({"role": role, "content": content, **kwargs})
 
-    def run(self, task: str, **kwargs) -> tuple[str, str]:
-        """Run step() until agent is finished. Return exit status & message"""
+    def run(self, task: str, **kwargs) -> tuple[str, str, str]:
+        """Run step() until agent is finished. Return exit status, result message, and patch content"""
         self.extra_template_vars |= {"task": task, **kwargs}
         self.messages = []
         self.add_message("system", self.render_template(self.config.system_template))
@@ -95,8 +101,9 @@ class DefaultAgent:
             except NonTerminatingException as e:
                 self.add_message("user", str(e))
             except TerminatingException as e:
+                patch = self.collect_patch()
                 self.add_message("user", str(e))
-                return type(e).__name__, str(e)
+                return type(e).__name__, str(e), patch
 
     def step(self) -> dict:
         """Query the LM, execute the action, return the observation."""
@@ -158,3 +165,40 @@ class DefaultAgent:
             "COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
         ]:
             raise Submitted("".join(lines[1:]))
+
+    def collect_patch(self) -> str:
+        """Collect git diff patch and return its contents."""
+        logger.debug(f"Attempting to collect patch from {self.repo_dir}")
+
+        # Collect the patch directly
+        try:
+            # Execute git commands in the repository directory
+            result = self.env.execute(
+                "git add -A && git diff --cached", cwd=self.repo_dir
+            )
+            if result.get("returncode", 0) == 0:
+                patch_content = result.get("output", "")
+                if patch_content:
+                    logger.info(
+                        f"Successfully collected patch with {len(patch_content)} characters"
+                    )
+                    # Also write to /root/model.patch for SWE-bench compatibility
+                    try:
+                        self.env.execute(
+                            "git diff --cached > /root/model.patch", cwd=self.repo_dir
+                        )
+                    except Exception:
+                        pass  # Ignore errors writing the file
+                    return patch_content
+                else:
+                    logger.info("Patch is empty (no changes detected)")
+                    return ""
+            else:
+                output = result.get("output", "")
+                logger.warning(
+                    f"Git command failed (exit code {result.get('returncode')}): {output}"
+                )
+                return ""
+        except Exception as e:
+            logger.warning(f"Exception collecting patch: {e}")
+            return ""

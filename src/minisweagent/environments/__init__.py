@@ -10,6 +10,8 @@ _ENVIRONMENT_MAPPING = {
     "singularity": "minisweagent.environments.singularity.SingularityEnvironment",
     "local": "minisweagent.environments.local.LocalEnvironment",
     "swerex_docker": "minisweagent.environments.extra.swerex_docker.SwerexDockerEnvironment",
+    "swerex_modal": "minisweagent.environments.extra.swerex_modal.SwerexModalEnvironment",
+    "modal": "minisweagent.environments.extra.swerex_modal.SwerexModalEnvironment",  # Alias
     "bubblewrap": "minisweagent.environments.extra.bubblewrap.BubblewrapEnvironment",
 }
 

@@ -19,7 +19,7 @@ def test_successful_completion_with_confirmation():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Test completion with confirmation")
+        exit_status, result, _ = agent.run("Test completion with confirmation")
         assert exit_status == "Submitted"
         assert result == "completed\n"
         assert agent.model.n_calls == 1
@@ -45,7 +45,7 @@ def test_action_rejection_and_recovery():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Test action rejection")
+        exit_status, result, _ = agent.run("Test action rejection")
         assert exit_status == "Submitted"
         assert result == "recovered\n"
         assert agent.model.n_calls == 2
@@ -77,7 +77,7 @@ def test_yolo_mode_activation():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Test yolo mode")
+        exit_status, result, _ = agent.run("Test yolo mode")
         assert exit_status == "Submitted"
         assert result == "yolo works\n"
         assert agent.config.mode == "yolo"
@@ -103,7 +103,7 @@ def test_help_command():
                 env=LocalEnvironment(),
             )
 
-            exit_status, result = agent.run("Test help command")
+            exit_status, result, _ = agent.run("Test help command")
             assert exit_status == "Submitted"
             assert result == "help shown\n"
             # Check that help was printed
@@ -129,7 +129,7 @@ def test_whitelisted_actions_skip_confirmation():
             whitelist_actions=[r"echo.*"],
         )
 
-        exit_status, result = agent.run("Test whitelisted actions")
+        exit_status, result, _ = agent.run("Test whitelisted actions")
         assert exit_status == "Submitted"
         assert result == "no confirmation needed\n"
 
@@ -173,7 +173,7 @@ def _test_interruption_helper(
         "minisweagent.agents.interactive.prompt_session.prompt", side_effect=mock_input
     ):
         with patch.object(agent, "query", side_effect=mock_query):
-            exit_status, result = agent.run(problem_statement)
+            exit_status, result, _ = agent.run(problem_statement)
 
     assert exit_status == "Submitted"
     assert result == "recovered from interrupt\n"
@@ -225,7 +225,7 @@ def test_multiple_confirmations_and_commands():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Test complex interaction flow")
+        exit_status, result, _ = agent.run("Test complex interaction flow")
         assert exit_status == "Submitted"
         assert result == "complex flow completed\n"
         assert agent.config.mode == "yolo"  # Should be in yolo mode
@@ -248,7 +248,7 @@ def test_non_whitelisted_action_requires_confirmation():
             whitelist_actions=[r"ls.*"],  # Only ls commands whitelisted
         )
 
-        exit_status, result = agent.run("Test non-whitelisted action")
+        exit_status, result, _ = agent.run("Test non-whitelisted action")
         assert exit_status == "Submitted"
         assert result == "confirmed\n"
 
@@ -274,7 +274,7 @@ def test_human_mode_basic_functionality():
             mode="human",
         )
 
-        exit_status, result = agent.run("Test human mode")
+        exit_status, result, _ = agent.run("Test human mode")
         assert exit_status == "Submitted"
         assert result == "human mode works\n"
         assert agent.config.mode == "human"
@@ -301,7 +301,7 @@ def test_human_mode_switch_to_yolo():
             mode="human",
         )
 
-        exit_status, result = agent.run("Test human to yolo switch")
+        exit_status, result, _ = agent.run("Test human to yolo switch")
         assert exit_status == "Submitted"
         assert result == "switched to yolo\n"
         assert agent.config.mode == "yolo"
@@ -328,7 +328,7 @@ def test_human_mode_switch_to_confirm():
             mode="human",
         )
 
-        exit_status, result = agent.run("Test human to confirm switch")
+        exit_status, result, _ = agent.run("Test human to confirm switch")
         assert exit_status == "Submitted"
         assert result == "switched to confirm\n"
         assert agent.config.mode == "confirm"
@@ -356,7 +356,7 @@ def test_confirmation_mode_switch_to_human_with_rejection():
             mode="confirm",
         )
 
-        exit_status, result = agent.run("Test confirm to human switch")
+        exit_status, result, _ = agent.run("Test confirm to human switch")
         assert exit_status == "Submitted"
         assert result == "human command after rejection\n"
         assert agent.config.mode == "human"
@@ -388,7 +388,7 @@ def test_confirmation_mode_switch_to_yolo_and_continue():
             mode="confirm",
         )
 
-        exit_status, result = agent.run("Test confirm to yolo switch")
+        exit_status, result, _ = agent.run("Test confirm to yolo switch")
         assert exit_status == "Submitted"
         assert result == "switched and continued\n"
         assert agent.config.mode == "yolo"
@@ -426,7 +426,7 @@ def test_mode_switch_during_keyboard_interrupt():
         ],
     ):
         with patch.object(agent, "query", side_effect=mock_query):
-            exit_status, result = agent.run("Test interrupt mode switch")
+            exit_status, result, _ = agent.run("Test interrupt mode switch")
 
     assert exit_status == "Submitted"
     assert result == "recovered after mode switch\n"
@@ -460,7 +460,7 @@ def test_already_in_mode_behavior():
             mode="confirm",
         )
 
-        exit_status, result = agent.run("Test already in mode")
+        exit_status, result, _ = agent.run("Test already in mode")
         assert exit_status == "Submitted"
         assert result == "already in mode\n"
         assert agent.config.mode == "confirm"
@@ -500,7 +500,7 @@ def test_all_mode_transitions_yolo_to_others():
             return original_query(*args, **kwargs)
 
         with patch.object(agent, "query", side_effect=mock_query):
-            exit_status, result = agent.run("Test yolo to confirm transition")
+            exit_status, result, _ = agent.run("Test yolo to confirm transition")
 
         assert exit_status == "Submitted"
         assert result == "confirm action\n"
@@ -525,7 +525,7 @@ def test_all_mode_transitions_confirm_to_human():
             mode="confirm",
         )
 
-        exit_status, result = agent.run("Test confirm to human transition")
+        exit_status, result, _ = agent.run("Test confirm to human transition")
         assert exit_status == "Submitted"
         assert result == "human command\n"
         assert agent.config.mode == "human"
@@ -553,7 +553,7 @@ def test_help_command_from_different_contexts():
                 mode="confirm",
             )
 
-            exit_status, result = agent.run("Test help from confirmation")
+            exit_status, result, _ = agent.run("Test help from confirmation")
             assert exit_status == "Submitted"
             assert result == "help works\n"
             # Verify help was shown
@@ -582,7 +582,7 @@ def test_help_command_from_human_mode():
                 mode="human",
             )
 
-            exit_status, result = agent.run("Test help from human mode")
+            exit_status, result, _ = agent.run("Test help from human mode")
             assert exit_status == "Submitted"
             assert result == "help in human mode\n"
             # Verify help was shown
@@ -632,7 +632,7 @@ def test_complex_mode_switching_sequence():
         ],
     ):
         with patch.object(agent, "query", side_effect=mock_query):
-            exit_status, result = agent.run("Test complex mode switching")
+            exit_status, result, _ = agent.run("Test complex mode switching")
 
     assert exit_status == "Submitted"
     assert result == "final action\n"
@@ -667,7 +667,7 @@ def test_limits_exceeded_with_user_continuation():
             with patch(
                 "minisweagent.agents.interactive.console.print"
             ):  # Suppress console output
-                exit_status, result = agent.run(
+                exit_status, result, _ = agent.run(
                     "Test limits exceeded with continuation"
                 )
 
@@ -704,7 +704,7 @@ def test_limits_exceeded_multiple_times_with_continuation():
             "minisweagent.agents.interactive.prompt_session.prompt", side_effect=[""]
         ):  # No new task
             with patch("minisweagent.agents.interactive.console.print"):
-                exit_status, result = agent.run("Test multiple limit increases")
+                exit_status, result, _ = agent.run("Test multiple limit increases")
 
     assert exit_status == "Submitted"
     assert result == "completed after multiple increases\n"
@@ -733,7 +733,7 @@ def test_continue_after_completion_with_new_task():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Complete the initial task")
+        exit_status, result, _ = agent.run("Complete the initial task")
         assert exit_status == "Submitted"
         assert result == "new task completed\n"
         assert agent.model.n_calls == 2
@@ -764,7 +764,7 @@ def test_continue_after_completion_without_new_task():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Complete the task")
+        exit_status, result, _ = agent.run("Complete the task")
         assert exit_status == "Submitted"
         assert result == "original task completed\n"
         assert agent.model.n_calls == 1
@@ -801,7 +801,7 @@ def test_continue_after_completion_multiple_cycles():
             env=LocalEnvironment(),
         )
 
-        exit_status, result = agent.run("Initial task")
+        exit_status, result, _ = agent.run("Initial task")
         assert exit_status == "Submitted"
         assert result == "third completed\n"
         assert agent.model.n_calls == 3
@@ -836,7 +836,7 @@ def test_continue_after_completion_in_yolo_mode():
             mode="yolo",  # Start in yolo mode
         )
 
-        exit_status, result = agent.run("Initial task")
+        exit_status, result, _ = agent.run("Initial task")
         assert exit_status == "Submitted"
         assert result == "second task completed\n"
         assert agent.config.mode == "yolo"
@@ -866,7 +866,7 @@ def test_confirm_exit_enabled_asks_for_confirmation():
             confirm_exit=True,  # Should ask for confirmation
         )
 
-        exit_status, result = agent.run("Test confirm exit enabled")
+        exit_status, result, _ = agent.run("Test confirm exit enabled")
         assert exit_status == "Submitted"
         assert result == "completed\n"
         assert agent.model.n_calls == 1
@@ -888,7 +888,7 @@ def test_confirm_exit_disabled_exits_immediately():
             confirm_exit=False,  # Should NOT ask for confirmation
         )
 
-        exit_status, result = agent.run("Test confirm exit disabled")
+        exit_status, result, _ = agent.run("Test confirm exit disabled")
         assert exit_status == "Submitted"
         assert result == "completed\n"
         assert agent.model.n_calls == 1
@@ -916,7 +916,7 @@ def test_confirm_exit_with_new_task_continues_execution():
             confirm_exit=True,
         )
 
-        exit_status, result = agent.run("Test exit with new task")
+        exit_status, result, _ = agent.run("Test exit with new task")
         assert exit_status == "Submitted"
         assert result == "additional done\n"
         assert agent.model.n_calls == 2

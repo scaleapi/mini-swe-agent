@@ -40,6 +40,9 @@ class SingularityEnvironment:
         self.config = config_class(**kwargs)
         self.sandbox_dir = self._build_sandbox()
 
+        # Determine working directory by executing pwd in the container
+        self.working_dir = self._get_working_dir()
+
     def _build_sandbox(self) -> Path:
         # Building the sandbox can fail (very rarely), so we retry it
         max_retries = self.config.sandbox_build_retries
@@ -70,7 +73,17 @@ class SingularityEnvironment:
         return sandbox_dir
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config)
+        return asdict(self.config) | {"working_dir": self.working_dir}
+
+    def _get_working_dir(self) -> str:
+        """Determine the current working directory in the container."""
+        result = self.execute("pwd")
+        if result["returncode"] != 0:
+            self.logger.warning(
+                f"Failed to determine working directory, using cwd: {self.config.cwd}"
+            )
+            return self.config.cwd
+        return result["output"].strip()
 
     def execute(
         self, command: str, cwd: str = "", *, timeout: int | None = None
