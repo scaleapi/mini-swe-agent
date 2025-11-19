@@ -5,7 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from minisweagent.environments.extra.bubblewrap import BubblewrapEnvironment, BubblewrapEnvironmentConfig
+from minisweagent.environments.extra.bubblewrap import (
+    BubblewrapEnvironment,
+    BubblewrapEnvironmentConfig,
+)
 
 
 @pytest.mark.skipif(not shutil.which("bwrap"), reason="bubblewrap not available")
@@ -25,18 +28,24 @@ def test_bubblewrap_environment_basic_execution():
 @pytest.mark.skipif(not shutil.which("bwrap"), reason="bubblewrap not available")
 def test_bubblewrap_environment_set_env_variables():
     """Test setting environment variables in the bubblewrap environment."""
-    env = BubblewrapEnvironment(env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"})
+    env = BubblewrapEnvironment(
+        env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"}
+    )
 
     try:
         # Test single environment variable
         result = env.execute("echo $TEST_VAR")
-        print(f"test_bubblewrap_environment_set_env_variables result (single var): {result}")
+        print(
+            f"test_bubblewrap_environment_set_env_variables result (single var): {result}"
+        )
         assert result["returncode"] == 0
         assert "test_value" in result["output"]
 
         # Test multiple environment variables
         result = env.execute("echo $TEST_VAR $ANOTHER_VAR")
-        print(f"test_bubblewrap_environment_set_env_variables result (multiple vars): {result}")
+        print(
+            f"test_bubblewrap_environment_set_env_variables result (multiple vars): {result}"
+        )
         assert result["returncode"] == 0
         assert "test_value another_value" in result["output"]
     finally:
@@ -61,13 +70,18 @@ def test_bubblewrap_environment_custom_cwd():
 @pytest.mark.skipif(not shutil.which("bwrap"), reason="bubblewrap not available")
 def test_bubblewrap_environment_cwd_parameter_override():
     """Test that the cwd parameter in execute() overrides the config cwd."""
-    with tempfile.TemporaryDirectory() as temp_dir1, tempfile.TemporaryDirectory() as temp_dir2:
+    with (
+        tempfile.TemporaryDirectory() as temp_dir1,
+        tempfile.TemporaryDirectory() as temp_dir2,
+    ):
         env = BubblewrapEnvironment(cwd=temp_dir1)
 
         try:
             # Execute with different cwd parameter
             result = env.execute("pwd", cwd=temp_dir2)
-            print(f"test_bubblewrap_environment_cwd_parameter_override result: {result}")
+            print(
+                f"test_bubblewrap_environment_cwd_parameter_override result: {result}"
+            )
             assert result["returncode"] == 0
             assert temp_dir2 in result["output"]
         finally:
@@ -97,7 +111,10 @@ def test_bubblewrap_environment_nonexistent_command():
         result = env.execute("nonexistent_command_12345")
         print(f"test_bubblewrap_environment_nonexistent_command result: {result}")
         assert result["returncode"] != 0
-        assert "nonexistent_command_12345" in result["output"] or "command not found" in result["output"]
+        assert (
+            "nonexistent_command_12345" in result["output"]
+            or "command not found" in result["output"]
+        )
     finally:
         env.cleanup()
 
@@ -143,7 +160,9 @@ def test_bubblewrap_environment_return_codes(command, expected_returncode):
 
     try:
         result = env.execute(command)
-        print(f"test_bubblewrap_environment_return_codes result (cmd: {command}): {result}")
+        print(
+            f"test_bubblewrap_environment_return_codes result (cmd: {command}): {result}"
+        )
         assert result["returncode"] == expected_returncode
     finally:
         env.cleanup()
@@ -177,12 +196,16 @@ def test_bubblewrap_environment_file_operations():
         try:
             # Create a file
             result = env.execute("echo 'test content' > test.txt")
-            print(f"test_bubblewrap_environment_file_operations result (create file): {result}")
+            print(
+                f"test_bubblewrap_environment_file_operations result (create file): {result}"
+            )
             assert result["returncode"] == 0
 
             # Read the file
             result = env.execute("cat test.txt")
-            print(f"test_bubblewrap_environment_file_operations result (read file): {result}")
+            print(
+                f"test_bubblewrap_environment_file_operations result (read file): {result}"
+            )
             assert result["returncode"] == 0
             assert "test content" in result["output"]
 
@@ -249,7 +272,9 @@ def test_bubblewrap_environment_get_template_vars():
 
     try:
         template_vars = env.get_template_vars()
-        print(f"test_bubblewrap_environment_get_template_vars template_vars: {template_vars}")
+        print(
+            f"test_bubblewrap_environment_get_template_vars template_vars: {template_vars}"
+        )
 
         # Should contain config data
         assert "env" in template_vars

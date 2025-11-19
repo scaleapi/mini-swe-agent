@@ -24,7 +24,12 @@ from textual.events import Key
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Input, Static, TextArea
 
-from minisweagent.agents.default import AgentConfig, DefaultAgent, NonTerminatingException, Submitted
+from minisweagent.agents.default import (
+    AgentConfig,
+    DefaultAgent,
+    NonTerminatingException,
+    Submitted,
+)
 
 
 @dataclass
@@ -73,14 +78,22 @@ class _TextualAgent(DefaultAgent):
         return exit_status, result
 
     def execute_action(self, action: dict) -> dict:
-        if self.config.mode == "human" and not self._current_action_from_human:  # threading, grrrrr
-            raise NonTerminatingException("Command not executed because user switched to manual mode.")
+        if (
+            self.config.mode == "human" and not self._current_action_from_human
+        ):  # threading, grrrrr
+            raise NonTerminatingException(
+                "Command not executed because user switched to manual mode."
+            )
         if (
             self.config.mode == "confirm"
             and action["action"].strip()
-            and not any(re.match(r, action["action"]) for r in self.config.whitelist_actions)
+            and not any(
+                re.match(r, action["action"]) for r in self.config.whitelist_actions
+            )
         ):
-            result = self.app.input_container.request_input("Press ENTER to confirm or provide rejection reason")
+            result = self.app.input_container.request_input(
+                "Press ENTER to confirm or provide rejection reason"
+            )
             if result:  # Non-empty string means rejection
                 raise NonTerminatingException(f"Command not executed: {result}")
         return super().execute_action(action)
@@ -94,7 +107,9 @@ class _TextualAgent(DefaultAgent):
                     "[bold green]Agent wants to finish.[/bold green] "
                     "[green]Type a comment to give it a new task or press enter to quit.\n"
                 ).strip():
-                    raise NonTerminatingException(f"The user added a new task: {new_task}")
+                    raise NonTerminatingException(
+                        f"The user added a new task: {new_task}"
+                    )
             raise e
 
 
@@ -135,7 +150,9 @@ class SmartInputContainer(Container):
         self._input_event = threading.Event()
         self._input_result: str | None = None
 
-        self._header_display = Static(id="input-header-display", classes="message-header input-request-header")
+        self._header_display = Static(
+            id="input-header-display", classes="message-header input-request-header"
+        )
         self._hint_text = Static(classes="hint-text")
         self._single_input = Input(placeholder="Type your input...")
         self._multi_input = TextArea(show_line_numbers=False, classes="multi-input")
@@ -241,26 +258,58 @@ class SmartInputContainer(Container):
 
 class TextualAgent(App):
     BINDINGS = [
-        Binding("right,l", "next_step", "Step++", tooltip="Show next step of the agent"),
-        Binding("left,h", "previous_step", "Step--", tooltip="Show previous step of the agent"),
-        Binding("0", "first_step", "Step=0", tooltip="Show first step of the agent", show=False),
-        Binding("$", "last_step", "Step=-1", tooltip="Show last step of the agent", show=False),
+        Binding(
+            "right,l", "next_step", "Step++", tooltip="Show next step of the agent"
+        ),
+        Binding(
+            "left,h",
+            "previous_step",
+            "Step--",
+            tooltip="Show previous step of the agent",
+        ),
+        Binding(
+            "0",
+            "first_step",
+            "Step=0",
+            tooltip="Show first step of the agent",
+            show=False,
+        ),
+        Binding(
+            "$",
+            "last_step",
+            "Step=-1",
+            tooltip="Show last step of the agent",
+            show=False,
+        ),
         Binding("j,down", "scroll_down", "Scroll down", show=False),
         Binding("k,up", "scroll_up", "Scroll up", show=False),
         Binding("q,ctrl+q", "quit", "Quit", tooltip="Quit the agent"),
-        Binding("y,ctrl+y", "yolo", "YOLO mode", tooltip="Switch to YOLO Mode (LM actions will execute immediately)"),
+        Binding(
+            "y,ctrl+y",
+            "yolo",
+            "YOLO mode",
+            tooltip="Switch to YOLO Mode (LM actions will execute immediately)",
+        ),
         Binding(
             "c",
             "confirm",
             "CONFIRM mode",
             tooltip="Switch to Confirm Mode (LM proposes commands and you confirm/reject them)",
         ),
-        Binding("u,ctrl+u", "human", "HUMAN mode", tooltip="Switch to Human Mode (you can now type commands directly)"),
+        Binding(
+            "u,ctrl+u",
+            "human",
+            "HUMAN mode",
+            tooltip="Switch to Human Mode (you can now type commands directly)",
+        ),
         Binding("f1,question_mark", "toggle_help_panel", "Help", tooltip="Show help"),
     ]
 
     def __init__(self, model, env, **kwargs):
-        css_path = os.environ.get("MSWEA_MINI_STYLE_PATH", str(Path(__file__).parent.parent / "config" / "mini.tcss"))
+        css_path = os.environ.get(
+            "MSWEA_MINI_STYLE_PATH",
+            str(Path(__file__).parent.parent / "config" / "mini.tcss"),
+        )
         self.__class__.CSS = Path(css_path).read_text()
         super().__init__()
         self.agent_state = "UNINITIALIZED"
@@ -268,7 +317,9 @@ class TextualAgent(App):
         self._i_step = 0
         self.n_steps = 1
         self.input_container = SmartInputContainer(self)
-        self.log_handler = AddLogEmitCallback(lambda record: self.call_from_thread(self.on_log_message_emitted, record))
+        self.log_handler = AddLogEmitCallback(
+            lambda record: self.call_from_thread(self.on_log_message_emitted, record)
+        )
         logging.getLogger().addHandler(self.log_handler)
         self._spinner = Spinner("dots")
         self.exit_status: str = "ExitStatusUnset"
@@ -277,7 +328,9 @@ class TextualAgent(App):
         self._vscroll = VerticalScroll()
 
     def run(self, task: str, **kwargs) -> tuple[str, str]:
-        threading.Thread(target=lambda: self.agent.run(task, **kwargs), daemon=True).start()
+        threading.Thread(
+            target=lambda: self.agent.run(task, **kwargs), daemon=True
+        ).start()
         super().run()
         return self.exit_status, self.result
 
@@ -338,7 +391,9 @@ class TextualAgent(App):
     def on_log_message_emitted(self, record: logging.LogRecord) -> None:
         """Handle log messages of warning level or higher by showing them as notifications."""
         if record.levelno >= logging.WARNING:
-            self.notify(f"[{record.levelname}] {record.getMessage()}", severity="warning")
+            self.notify(
+                f"[{record.levelname}] {record.getMessage()}", severity="warning"
+            )
 
     def on_unmount(self) -> None:
         """Clean up the log handler when the app shuts down."""
@@ -372,11 +427,16 @@ class TextualAgent(App):
             container.mount(message_container)
             role = message["role"].replace("assistant", "mini-swe-agent")
             message_container.mount(Static(role.upper(), classes="message-header"))
-            message_container.mount(Static(Text(content_str, no_wrap=False), classes="message-content"))
+            message_container.mount(
+                Static(Text(content_str, no_wrap=False), classes="message-content")
+            )
 
         if self.input_container.pending_prompt is not None:
             self.agent_state = "AWAITING_INPUT"
-        self.input_container.display = self.input_container.pending_prompt is not None and self.i_step == len(items) - 1
+        self.input_container.display = (
+            self.input_container.pending_prompt is not None
+            and self.i_step == len(items) - 1
+        )
         if self.input_container.display:
             self.input_container.on_focus()
 
@@ -414,16 +474,26 @@ class TextualAgent(App):
         self.notify("YOLO mode enabled - LM actions will execute immediately")
 
     def action_human(self):
-        if self.agent.config.mode == "confirm" and self.input_container.pending_prompt is not None:
-            self.input_container._complete_input("User switched to manual mode, this command will be ignored")
+        if (
+            self.agent.config.mode == "confirm"
+            and self.input_container.pending_prompt is not None
+        ):
+            self.input_container._complete_input(
+                "User switched to manual mode, this command will be ignored"
+            )
         self.agent.config.mode = "human"
         self.notify("Human mode enabled - you can now type commands directly")
 
     def action_confirm(self):
-        if self.agent.config.mode == "human" and self.input_container.pending_prompt is not None:
+        if (
+            self.agent.config.mode == "human"
+            and self.input_container.pending_prompt is not None
+        ):
             self.input_container._complete_input("")  # just submit blank action
         self.agent.config.mode = "confirm"
-        self.notify("Confirm mode enabled - LM proposes commands and you confirm/reject them")
+        self.notify(
+            "Confirm mode enabled - LM proposes commands and you confirm/reject them"
+        )
 
     def action_next_step(self) -> None:
         self.i_step += 1

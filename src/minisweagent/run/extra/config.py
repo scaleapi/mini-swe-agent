@@ -69,7 +69,10 @@ def setup():
     key_name = prompt("Enter your API key name (e.g., ANTHROPIC_API_KEY): ").strip()
     key_value = None
     if key_name:
-        key_value = prompt("Enter your API key value (e.g., sk-1234567890): ", default=os.getenv(key_name, "")).strip()
+        key_value = prompt(
+            "Enter your API key value (e.g., sk-1234567890): ",
+            default=os.getenv(key_name, ""),
+        ).strip()
         if key_value:
             set_key(global_config_file, key_name, key_value)
     if not key_value:

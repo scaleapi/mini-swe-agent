@@ -21,7 +21,11 @@ def test_set_cache_control_basic():
         {
             "role": "assistant",
             "content": [
-                {"type": "text", "text": "Of course! I'd be happy to help.", "cache_control": {"type": "ephemeral"}}
+                {
+                    "type": "text",
+                    "text": "Of course! I'd be happy to help.",
+                    "cache_control": {"type": "ephemeral"},
+                }
             ],
         },
     ]
@@ -52,7 +56,13 @@ def test_set_cache_control_offset_deprecated():
         {"role": "user", "content": "Second message"},
         {
             "role": "user",
-            "content": [{"type": "text", "text": "Third message", "cache_control": {"type": "ephemeral"}}],
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Third message",
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
         },
     ]
 

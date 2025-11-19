@@ -23,7 +23,13 @@ def test_save_traj_includes_class_names():
         temp_path = Path(temp_dir) / "test_trajectory.json"
 
         # Save the trajectory
-        save_traj(agent, temp_path, exit_status="Submitted", result="test result", print_path=False)
+        save_traj(
+            agent,
+            temp_path,
+            exit_status="Submitted",
+            result="test result",
+            print_path=False,
+        )
 
         # Load the saved trajectory
         with temp_path.open() as f:
@@ -42,8 +48,13 @@ def test_save_traj_includes_class_names():
 
         # Verify the actual class names with module paths
         assert config["agent_type"] == "minisweagent.agents.default.DefaultAgent"
-        assert config["model_type"] == "minisweagent.models.test_models.DeterministicModel"
-        assert config["environment_type"] == "minisweagent.environments.local.LocalEnvironment"
+        assert (
+            config["model_type"] == "minisweagent.models.test_models.DeterministicModel"
+        )
+        assert (
+            config["environment_type"]
+            == "minisweagent.environments.local.LocalEnvironment"
+        )
 
         # Verify other expected data is still present
         assert saved_data["info"]["exit_status"] == "Submitted"
@@ -57,7 +68,9 @@ def test_save_traj_with_none_agent():
         temp_path = Path(temp_dir) / "test_trajectory.json"
 
         # Save with None agent
-        save_traj(None, temp_path, exit_status="Failed", result="no agent", print_path=False)
+        save_traj(
+            None, temp_path, exit_status="Failed", result="no agent", print_path=False
+        )
 
         # Load the saved trajectory
         with temp_path.open() as f:

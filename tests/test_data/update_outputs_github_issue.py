@@ -13,7 +13,9 @@ def update_trajectory():
     traj_path = Path(__file__).parent / "github_issue.traj.json"
     trajectory = json.loads(traj_path.read_text())
 
-    model_responses = [msg["content"] for msg in trajectory[2:] if msg["role"] == "assistant"]
+    model_responses = [
+        msg["content"] for msg in trajectory[2:] if msg["role"] == "assistant"
+    ]
 
     with patch("minisweagent.run.github_issue.get_model") as mock_get_model:
         mock_get_model.return_value = DeterministicModel(outputs=model_responses)

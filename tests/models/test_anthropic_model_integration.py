@@ -25,10 +25,14 @@ def test_sonnet_4_cache_control_integration():
         {"role": "user", "content": "Can you help me with coding?"},
     ]
 
-    with patch("minisweagent.models.litellm_model.litellm.completion") as mock_completion:
+    with patch(
+        "minisweagent.models.litellm_model.litellm.completion"
+    ) as mock_completion:
         mock_completion.return_value = _mock_litellm_completion("Sure, I can help!")
 
-        with patch("minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost") as mock_cost:
+        with patch(
+            "minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost"
+        ) as mock_cost:
             mock_cost.return_value = 0.001
 
             # This is the key test: get_model with anthropic name should enable cache control
@@ -75,10 +79,14 @@ def test_get_model_anthropic_applies_cache_control(model_name):
         {"role": "user", "content": "Help me code."},
     ]
 
-    with patch("minisweagent.models.litellm_model.litellm.completion") as mock_completion:
+    with patch(
+        "minisweagent.models.litellm_model.litellm.completion"
+    ) as mock_completion:
         mock_completion.return_value = _mock_litellm_completion("I'll help you code!")
 
-        with patch("minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost") as mock_cost:
+        with patch(
+            "minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost"
+        ) as mock_cost:
             mock_cost.return_value = 0.001
 
             # Get model through get_model - this should auto-configure cache control
@@ -98,25 +106,35 @@ def test_get_model_anthropic_applies_cache_control(model_name):
             assert len(passed_messages) == 4, f"Expected 4 messages for {model_name}"
 
             # First three messages should not have cache control
-            assert passed_messages[0]["content"] == "You are a helpful assistant.", (
-                f"System message content should be preserved for {model_name}"
-            )
-            assert passed_messages[1]["content"] == "Hello!", (
-                f"First user message content should be preserved for {model_name}"
-            )
-            assert passed_messages[2]["content"] == "Hi there!", (
-                f"Assistant message content should be preserved for {model_name}"
-            )
+            assert (
+                passed_messages[0]["content"] == "You are a helpful assistant."
+            ), f"System message content should be preserved for {model_name}"
+            assert (
+                passed_messages[1]["content"] == "Hello!"
+            ), f"First user message content should be preserved for {model_name}"
+            assert (
+                passed_messages[2]["content"] == "Hi there!"
+            ), f"Assistant message content should be preserved for {model_name}"
 
             # Last message should have cache control
             last_message = passed_messages[3]
-            assert isinstance(last_message["content"], list), f"Last message should have list content for {model_name}"
-            assert len(last_message["content"]) == 1, f"Last message should have single content item for {model_name}"
+            assert isinstance(
+                last_message["content"], list
+            ), f"Last message should have list content for {model_name}"
+            assert (
+                len(last_message["content"]) == 1
+            ), f"Last message should have single content item for {model_name}"
 
             content_item = last_message["content"][0]
-            assert content_item["type"] == "text", f"Content should be text type for {model_name}"
-            assert content_item["cache_control"] == {"type": "ephemeral"}, f"Cache control missing for {model_name}"
-            assert content_item["text"] == "Help me code.", f"Text content should be preserved for {model_name}"
+            assert (
+                content_item["type"] == "text"
+            ), f"Content should be text type for {model_name}"
+            assert content_item["cache_control"] == {
+                "type": "ephemeral"
+            }, f"Cache control missing for {model_name}"
+            assert (
+                content_item["text"] == "Help me code."
+            ), f"Text content should be preserved for {model_name}"
 
 
 @pytest.mark.parametrize(
@@ -133,10 +151,14 @@ def test_get_model_non_anthropic_no_cache_control(model_name):
         {"role": "user", "content": "Hello!"},
     ]
 
-    with patch("minisweagent.models.litellm_model.litellm.completion") as mock_completion:
+    with patch(
+        "minisweagent.models.litellm_model.litellm.completion"
+    ) as mock_completion:
         mock_completion.return_value = _mock_litellm_completion("Hello!")
 
-        with patch("minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost") as mock_cost:
+        with patch(
+            "minisweagent.models.litellm_model.litellm.cost_calculator.completion_cost"
+        ) as mock_cost:
             mock_cost.return_value = 0.001
 
             # Get model through get_model - should NOT auto-configure cache control
@@ -155,8 +177,12 @@ def test_get_model_non_anthropic_no_cache_control(model_name):
             # The user message should still be a simple string, not transformed
             user_msg = passed_messages[0]
             assert user_msg["role"] == "user"
-            assert user_msg["content"] == "Hello!", f"Content should remain as string for {model_name}"
-            assert "cache_control" not in user_msg, f"No cache_control should be present for {model_name}"
+            assert (
+                user_msg["content"] == "Hello!"
+            ), f"Content should remain as string for {model_name}"
+            assert (
+                "cache_control" not in user_msg
+            ), f"No cache_control should be present for {model_name}"
 
 
 def test_explicit_anthropic_model_class_cache_control():

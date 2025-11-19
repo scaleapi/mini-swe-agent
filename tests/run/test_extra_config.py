@@ -1,7 +1,14 @@
 import os
 from unittest.mock import patch
 
-from minisweagent.run.extra.config import app, configure_if_first_time, edit, set, setup, unset
+from minisweagent.run.extra.config import (
+    app,
+    configure_if_first_time,
+    edit,
+    set,
+    setup,
+    unset,
+)
 
 
 class TestConfigSetup:
@@ -16,7 +23,11 @@ class TestConfigSetup:
             patch("minisweagent.run.extra.config.prompt") as mock_prompt,
             patch("minisweagent.run.extra.config.console.print"),
         ):
-            mock_prompt.side_effect = ["anthropic/claude-sonnet-4-5-20250929", "ANTHROPIC_API_KEY", "sk-test123"]
+            mock_prompt.side_effect = [
+                "anthropic/claude-sonnet-4-5-20250929",
+                "ANTHROPIC_API_KEY",
+                "sk-test123",
+            ]
 
             setup()
 
@@ -73,10 +84,20 @@ class TestConfigSetup:
             patch("minisweagent.run.extra.config.global_config_file", config_file),
             patch("minisweagent.run.extra.config.prompt") as mock_prompt,
             patch("minisweagent.run.extra.config.console.print"),
-            patch.dict(os.environ, {"MSWEA_MODEL_NAME": "existing-model", "ANTHROPIC_API_KEY": "existing-key"}),
+            patch.dict(
+                os.environ,
+                {
+                    "MSWEA_MODEL_NAME": "existing-model",
+                    "ANTHROPIC_API_KEY": "existing-key",
+                },
+            ),
         ):
             # When prompted, user accepts defaults (existing values)
-            mock_prompt.side_effect = ["existing-model", "ANTHROPIC_API_KEY", "existing-key"]
+            mock_prompt.side_effect = [
+                "existing-model",
+                "ANTHROPIC_API_KEY",
+                "existing-key",
+            ]
 
             setup()
 
@@ -245,7 +266,9 @@ class TestConfigUnset:
     def test_unset_with_argument_provided(self, tmp_path):
         """Test unset command when key is provided as argument."""
         config_file = tmp_path / ".env"
-        config_file.write_text("MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-test123'\n")
+        config_file.write_text(
+            "MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-test123'\n"
+        )
 
         with patch("minisweagent.run.extra.config.global_config_file", config_file):
             unset("MSWEA_MODEL_NAME")
@@ -277,7 +300,9 @@ class TestConfigUnset:
     def test_unset_existing_key(self, tmp_path):
         """Test unsetting an existing key (legacy test for compatibility)."""
         config_file = tmp_path / ".env"
-        config_file.write_text("MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-test123'\n")
+        config_file.write_text(
+            "MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-test123'\n"
+        )
 
         with patch("minisweagent.run.extra.config.global_config_file", config_file):
             unset("MSWEA_MODEL_NAME")
@@ -337,7 +362,9 @@ class TestConfigUnset:
     def test_unset_api_key_scenario(self, tmp_path):
         """Test unsetting an API key specifically."""
         config_file = tmp_path / ".env"
-        config_file.write_text("MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-old-key'\nMSWEA_CONFIGURED='true'\n")
+        config_file.write_text(
+            "MSWEA_MODEL_NAME='gpt-4'\nOPENAI_API_KEY='sk-old-key'\nMSWEA_CONFIGURED='true'\n"
+        )
 
         with patch("minisweagent.run.extra.config.global_config_file", config_file):
             unset("OPENAI_API_KEY")
@@ -438,8 +465,8 @@ class TestTyperAppIntegration:
             patch("typer.Option") as mock_option,
         ):
             # Mock the typer Option to return our test values
-            mock_option.side_effect = (
-                lambda default, **kwargs: "OPENAI_API_KEY" if "key" in str(kwargs) else "sk-test-key"
+            mock_option.side_effect = lambda default, **kwargs: (
+                "OPENAI_API_KEY" if "key" in str(kwargs) else "sk-test-key"
             )
 
             # Call the set function directly (as the app would)
@@ -451,7 +478,9 @@ class TestTyperAppIntegration:
     def test_unset_command_via_typer(self, tmp_path):
         """Test the unset command through the Typer app."""
         config_file = tmp_path / ".env"
-        config_file.write_text("OPENAI_API_KEY='sk-test-key'\nMSWEA_MODEL_NAME='gpt-4'\n")
+        config_file.write_text(
+            "OPENAI_API_KEY='sk-test-key'\nMSWEA_MODEL_NAME='gpt-4'\n"
+        )
 
         with patch("minisweagent.run.extra.config.global_config_file", config_file):
             # Call the unset function directly (as the app would)

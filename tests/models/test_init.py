@@ -3,7 +3,12 @@ from unittest.mock import patch
 
 import pytest
 
-from minisweagent.models import GlobalModelStats, get_model, get_model_class, get_model_name
+from minisweagent.models import (
+    GlobalModelStats,
+    get_model,
+    get_model_class,
+    get_model_name,
+)
 from minisweagent.models.test_models import DeterministicModel
 
 
@@ -14,7 +19,10 @@ class TestGetModelName:
     def test_input_model_name_takes_precedence(self):
         """Test that explicit input_model_name overrides all other sources."""
         with patch.dict(os.environ, {"MSWEA_MODEL_NAME": "env-model"}):
-            assert get_model_name("input-model", self.CONFIG_WITH_MODEL_NAME) == "input-model"
+            assert (
+                get_model_name("input-model", self.CONFIG_WITH_MODEL_NAME)
+                == "input-model"
+            )
 
     def test_config_takes_precedence_over_env(self):
         """Test that config takes precedence over environment variable."""
@@ -35,12 +43,14 @@ class TestGetModelName:
         """Test that ValueError is raised when no model is configured anywhere."""
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(
-                ValueError, match="No default model set. Please run `mini-extra config setup` to set one."
+                ValueError,
+                match="No default model set. Please run `mini-extra config setup` to set one.",
             ):
                 get_model_name(None, {})
 
             with pytest.raises(
-                ValueError, match="No default model set. Please run `mini-extra config setup` to set one."
+                ValueError,
+                match="No default model set. Please run `mini-extra config setup` to set one.",
             ):
                 get_model_name(None, None)
 
@@ -77,7 +87,9 @@ class TestGetModel:
         original_config = {"model_kwargs": {"api_key": "original"}, "outputs": ["test"]}
 
         with patch("minisweagent.models.get_model_class") as mock_get_class:
-            mock_get_class.return_value = lambda **kwargs: DeterministicModel(outputs=["test"], model_name="test")
+            mock_get_class.return_value = lambda **kwargs: DeterministicModel(
+                outputs=["test"], model_name="test"
+            )
             get_model("test-model", original_config)
             assert original_config["model_kwargs"]["api_key"] == "original"
             assert "model_name" not in original_config
@@ -88,7 +100,9 @@ class TestGetModel:
 
             def compatible_model(**kwargs):
                 # Filter to only what DeterministicModel accepts, provide defaults
-                config_args = {k: v for k, v in kwargs.items() if k in ["outputs", "model_name"]}
+                config_args = {
+                    k: v for k, v in kwargs.items() if k in ["outputs", "model_name"]
+                }
                 if "outputs" not in config_args:
                     config_args["outputs"] = ["default"]
                 return DeterministicModel(**config_args)
@@ -102,7 +116,10 @@ class TestGetModel:
     def test_env_var_overrides_config_api_key(self):
         """Test that MSWEA_MODEL_API_KEY overrides config api_key."""
         with patch.dict(os.environ, {"MSWEA_MODEL_API_KEY": "env-key"}):
-            config = {"model_kwargs": {"api_key": "config-key"}, "model_class": "litellm"}
+            config = {
+                "model_kwargs": {"api_key": "config-key"},
+                "model_class": "litellm",
+            }
             model = get_model("test-model", config)
 
             # LitellmModel stores the api_key in model_kwargs
@@ -111,7 +128,10 @@ class TestGetModel:
     def test_config_api_key_used_when_no_env_var(self):
         """Test that config api_key is used when env var is not set."""
         with patch.dict(os.environ, {}, clear=True):
-            config = {"model_kwargs": {"api_key": "config-key"}, "model_class": "litellm"}
+            config = {
+                "model_kwargs": {"api_key": "config-key"},
+                "model_class": "litellm",
+            }
             model = get_model("test-model", config)
 
             # LitellmModel stores the api_key in model_kwargs
@@ -164,7 +184,11 @@ class TestGlobalModelStats:
 
     def test_prints_both_limits_when_both_set(self, capsys):
         """Test that both limits are printed when both environment variables are set."""
-        with patch.dict(os.environ, {"MSWEA_GLOBAL_COST_LIMIT": "2.5", "MSWEA_GLOBAL_CALL_LIMIT": "5"}, clear=True):
+        with patch.dict(
+            os.environ,
+            {"MSWEA_GLOBAL_COST_LIMIT": "2.5", "MSWEA_GLOBAL_CALL_LIMIT": "5"},
+            clear=True,
+        ):
             GlobalModelStats()
             captured = capsys.readouterr()
             assert "Global cost/call limit: $2.5000 / 5" in captured.out
@@ -173,7 +197,11 @@ class TestGlobalModelStats:
         """Test that limits are not printed when MSWEA_SILENT_STARTUP is set."""
         with patch.dict(
             os.environ,
-            {"MSWEA_GLOBAL_COST_LIMIT": "5.0", "MSWEA_GLOBAL_CALL_LIMIT": "10", "MSWEA_SILENT_STARTUP": "1"},
+            {
+                "MSWEA_GLOBAL_COST_LIMIT": "5.0",
+                "MSWEA_GLOBAL_CALL_LIMIT": "10",
+                "MSWEA_SILENT_STARTUP": "1",
+            },
             clear=True,
         ):
             GlobalModelStats()
@@ -189,7 +217,11 @@ class TestGlobalModelStats:
 
     def test_no_print_when_limits_are_zero(self, capsys):
         """Test that nothing is printed when limits are explicitly set to zero."""
-        with patch.dict(os.environ, {"MSWEA_GLOBAL_COST_LIMIT": "0", "MSWEA_GLOBAL_CALL_LIMIT": "0"}, clear=True):
+        with patch.dict(
+            os.environ,
+            {"MSWEA_GLOBAL_COST_LIMIT": "0", "MSWEA_GLOBAL_CALL_LIMIT": "0"},
+            clear=True,
+        ):
             GlobalModelStats()
             captured = capsys.readouterr()
             assert "Global cost/call limit" not in captured.out

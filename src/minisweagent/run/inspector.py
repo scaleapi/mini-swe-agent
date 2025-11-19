@@ -38,7 +38,8 @@ class TrajectoryInspector(App):
 
     def __init__(self, trajectory_files: list[Path]):
         css_path = os.environ.get(
-            "MSWEA_INSPECTOR_STYLE_PATH", str(Path(__file__).parent.parent / "config" / "mini.tcss")
+            "MSWEA_INSPECTOR_STYLE_PATH",
+            str(Path(__file__).parent.parent / "config" / "mini.tcss"),
         )
         self.__class__.CSS = Path(css_path).read_text()
 
@@ -152,7 +153,9 @@ class TrajectoryInspector(App):
             container.mount(message_container)
             role = message["role"].replace("assistant", "mini-swe-agent")
             message_container.mount(Static(role.upper(), classes="message-header"))
-            message_container.mount(Static(Text(content_str, no_wrap=False), classes="message-content"))
+            message_container.mount(
+                Static(Text(content_str, no_wrap=False), classes="message-content")
+            )
 
         self.title = (
             f"Trajectory {self.i_trajectory + 1}/{self.n_trajectories} - "
@@ -191,7 +194,9 @@ class TrajectoryInspector(App):
 
 @app.command(help=__doc__)
 def main(
-    path: str = typer.Argument(".", help="Directory to search for trajectory files or specific trajectory file"),
+    path: str = typer.Argument(
+        ".", help="Directory to search for trajectory files or specific trajectory file"
+    ),
 ) -> None:
     path_obj = Path(path)
 

@@ -25,11 +25,15 @@ from minisweagent.run.extra.config import configure_if_first_time
 from minisweagent.run.utils.save import save_traj
 from minisweagent.utils.log import logger
 
-DEFAULT_CONFIG = Path(os.getenv("MSWEA_MINI_CONFIG_PATH", builtin_config_dir / "mini.yaml"))
+DEFAULT_CONFIG = Path(
+    os.getenv("MSWEA_MINI_CONFIG_PATH", builtin_config_dir / "mini.yaml")
+)
 DEFAULT_OUTPUT = global_config_dir / "last_mini_run.traj.json"
 console = Console(highlight=False)
 app = typer.Typer(rich_markup_mode="rich")
-prompt_session = PromptSession(history=FileHistory(global_config_dir / "mini_task_history.txt"))
+prompt_session = PromptSession(
+    history=FileHistory(global_config_dir / "mini_task_history.txt")
+)
 _HELP_TEXT = """Run mini-SWE-agent in your local environment.
 
 [not dim]

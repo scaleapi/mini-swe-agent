@@ -28,7 +28,10 @@ def test_step_limit_enforcement():
     """Test agent stops when step limit is reached."""
     agent = DefaultAgent(
         model=DeterministicModel(
-            outputs=["First command\n```bash\necho 'step1'\n```", "Second command\n```bash\necho 'step2'\n```"]
+            outputs=[
+                "First command\n```bash\necho 'step1'\n```",
+                "Second command\n```bash\necho 'step2'\n```",
+            ]
         ),
         env=LocalEnvironment(),
         step_limit=1,
@@ -72,7 +75,13 @@ def test_format_error_handling():
     assert agent.model.n_calls == 3
     # Should have error messages in conversation
     assert (
-        len([msg for msg in agent.messages if "Please always provide EXACTLY ONE action" in msg.get("content", "")])
+        len(
+            [
+                msg
+                for msg in agent.messages
+                if "Please always provide EXACTLY ONE action" in msg.get("content", "")
+            ]
+        )
         == 2
     )
 
@@ -93,7 +102,10 @@ def test_timeout_handling():
     assert exit_status == "Submitted"
     assert result == "recovered\n"
     # Should have timeout error message
-    assert len([msg for msg in agent.messages if "timed out" in msg.get("content", "")]) == 1
+    assert (
+        len([msg for msg in agent.messages if "timed out" in msg.get("content", "")])
+        == 1
+    )
 
 
 def test_timeout_captures_partial_output():
@@ -112,10 +124,16 @@ def test_timeout_captures_partial_output():
     )
     exit_status, result = agent.run("Test timeout with partial output")
     assert exit_status == "Submitted"
-    assert result == "recovered\n"  # final output should be `recovered` from the last command
-    timed_out_messages = [msg for msg in agent.messages if "timed out" in msg.get("content", "")]
+    assert (
+        result == "recovered\n"
+    )  # final output should be `recovered` from the last command
+    timed_out_messages = [
+        msg for msg in agent.messages if "timed out" in msg.get("content", "")
+    ]
     assert len(timed_out_messages) == 1
-    assert expected_output in timed_out_messages[0]["content"]  # ensure timed out output is still captured
+    assert (
+        expected_output in timed_out_messages[0]["content"]
+    )  # ensure timed out output is still captured
 
 
 def test_parse_action_success():
@@ -134,7 +152,9 @@ def test_parse_action_success():
     assert result["action"] == "ls -la"
     assert result["content"] == "```bash\nls -la\n```"
 
-    result = agent.parse_action({"content": "Some text\n```bash\necho 'hello'\n```\nMore text"})
+    result = agent.parse_action(
+        {"content": "Some text\n```bash\necho 'hello'\n```\nMore text"}
+    )
     assert result["action"] == "echo 'hello'"
     assert result["content"] == "Some text\n```bash\necho 'hello'\n```\nMore text"
 
@@ -152,7 +172,9 @@ def test_parse_action_failures():
 
     # Multiple code blocks
     with pytest.raises(NonTerminatingException):
-        agent.parse_action({"content": "```bash\necho 'first'\n```\n```bash\necho 'second'\n```"})
+        agent.parse_action(
+            {"content": "```bash\necho 'first'\n```\n```bash\necho 'second'\n```"}
+        )
 
     # Code block without bash language specifier
     with pytest.raises(NonTerminatingException):
@@ -177,7 +199,14 @@ def test_message_history_tracking():
 
     # After completion should have full conversation
     assert len(agent.messages) == 6
-    assert [msg["role"] for msg in agent.messages] == ["system", "user", "assistant", "user", "assistant", "user"]
+    assert [msg["role"] for msg in agent.messages] == [
+        "system",
+        "user",
+        "assistant",
+        "user",
+        "assistant",
+        "user",
+    ]
 
 
 def test_multiple_steps_before_completion():
@@ -202,7 +231,9 @@ def test_multiple_steps_before_completion():
 
     # Check that all intermediate outputs are captured (final step doesn't get observation due to termination)
     observations = [
-        msg["content"] for msg in agent.messages if msg["role"] == "user" and "Observation:" in msg["content"]
+        msg["content"]
+        for msg in agent.messages
+        if msg["role"] == "user" and "Observation:" in msg["content"]
     ]
     assert len(observations) == 3
     assert "first" in observations[0]

@@ -67,21 +67,33 @@ class BubblewrapEnvironmentConfig:
 
 class BubblewrapEnvironment:
     def __init__(
-        self, *, config_class: type = BubblewrapEnvironmentConfig, logger: logging.Logger | None = None, **kwargs
+        self,
+        *,
+        config_class: type = BubblewrapEnvironmentConfig,
+        logger: logging.Logger | None = None,
+        **kwargs,
     ):
         """This class executes bash commands in a bubblewrap environment and a separate working
         directory for each environment. See `BubblewrapEnvironmentConfig` for kwargs.
         """
         self.logger = logger or logging.getLogger("minisweagent.environment")
         self.config = config_class(**kwargs)
-        self.working_dir = Path(tempfile.gettempdir()) / f"minisweagent-{uuid.uuid4().hex[:8]}"
+        self.working_dir = (
+            Path(tempfile.gettempdir()) / f"minisweagent-{uuid.uuid4().hex[:8]}"
+        )
         self.working_dir.mkdir(parents=True)
 
-    def execute(self, command: str, cwd: str = "", *, timeout: int | None = None) -> dict[str, Any]:
+    def execute(
+        self, command: str, cwd: str = "", *, timeout: int | None = None
+    ) -> dict[str, Any]:
         """Execute a command in the bubblewrap environment and return the result as a dict."""
         cwd = cwd or self.config.cwd or str(self.working_dir)
 
-        cmd = [self.config.executable] + self.config.wrapper_args + ["--bind", cwd, cwd, "--chdir", cwd]
+        cmd = (
+            [self.config.executable]
+            + self.config.wrapper_args
+            + ["--bind", cwd, cwd, "--chdir", cwd]
+        )
 
         # Add environment variables
         for key, value in self.config.env.items():

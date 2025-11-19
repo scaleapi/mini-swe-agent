@@ -4,15 +4,24 @@ from unittest.mock import patch
 
 import pytest
 
-from minisweagent.environments.singularity import SingularityEnvironment, SingularityEnvironmentConfig
+from minisweagent.environments.singularity import (
+    SingularityEnvironment,
+    SingularityEnvironmentConfig,
+)
 
 
 def is_singularity_available():
     """Check if Singularity is available."""
     try:
-        subprocess.run(["singularity", "version"], capture_output=True, check=True, timeout=5)
+        subprocess.run(
+            ["singularity", "version"], capture_output=True, check=True, timeout=5
+        )
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ):
         return False
 
 
@@ -46,7 +55,8 @@ def test_singularity_environment_basic_execution():
 def test_singularity_environment_set_env_variables():
     """Test setting environment variables in the container."""
     env = SingularityEnvironment(
-        image="docker://python:3.11-slim", env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"}
+        image="docker://python:3.11-slim",
+        env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"},
     )
 
     # Test single environment variable
@@ -64,8 +74,13 @@ def test_singularity_environment_set_env_variables():
 @pytest.mark.skipif(not is_singularity_available(), reason="Singularity not available")
 def test_singularity_environment_forward_env_variables():
     """Test forwarding environment variables from host to container."""
-    with patch.dict(os.environ, {"HOST_VAR": "host_value", "ANOTHER_HOST_VAR": "another_host_value"}):
-        env = SingularityEnvironment(image="docker://python:3.11-slim", forward_env=["HOST_VAR", "ANOTHER_HOST_VAR"])
+    with patch.dict(
+        os.environ, {"HOST_VAR": "host_value", "ANOTHER_HOST_VAR": "another_host_value"}
+    ):
+        env = SingularityEnvironment(
+            image="docker://python:3.11-slim",
+            forward_env=["HOST_VAR", "ANOTHER_HOST_VAR"],
+        )
 
         # Test single forwarded environment variable
         result = env.execute("echo $HOST_VAR")
@@ -82,7 +97,9 @@ def test_singularity_environment_forward_env_variables():
 @pytest.mark.skipif(not is_singularity_available(), reason="Singularity not available")
 def test_singularity_environment_forward_nonexistent_env_variables():
     """Test forwarding non-existent environment variables (should be empty)."""
-    env = SingularityEnvironment(image="docker://python:3.11-slim", forward_env=["NONEXISTENT_VAR"])
+    env = SingularityEnvironment(
+        image="docker://python:3.11-slim", forward_env=["NONEXISTENT_VAR"]
+    )
 
     result = env.execute('echo "[$NONEXISTENT_VAR]"')
     assert result["returncode"] == 0
@@ -95,7 +112,9 @@ def test_singularity_environment_combined_env_and_forward():
     """Test both setting and forwarding environment variables together."""
     with patch.dict(os.environ, {"HOST_VAR": "from_host"}):
         env = SingularityEnvironment(
-            image="docker://python:3.11-slim", env={"SET_VAR": "from_config"}, forward_env=["HOST_VAR"]
+            image="docker://python:3.11-slim",
+            env={"SET_VAR": "from_config"},
+            forward_env=["HOST_VAR"],
         )
 
         result = env.execute("echo $SET_VAR $HOST_VAR")
@@ -109,7 +128,9 @@ def test_singularity_environment_env_override_forward():
     """Test that explicitly set env variables take precedence over forwarded ones."""
     with patch.dict(os.environ, {"CONFLICT_VAR": "from_host"}):
         env = SingularityEnvironment(
-            image="docker://python:3.11-slim", env={"CONFLICT_VAR": "from_config"}, forward_env=["CONFLICT_VAR"]
+            image="docker://python:3.11-slim",
+            env={"CONFLICT_VAR": "from_config"},
+            forward_env=["CONFLICT_VAR"],
         )
 
         result = env.execute("echo $CONFLICT_VAR")

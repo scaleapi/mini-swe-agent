@@ -45,7 +45,9 @@ def mock_response_no_cost():
 def test_openrouter_model_successful_query(mock_response):
     """Test successful OpenRouter API query with cost tracking."""
     with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"}):
-        model = OpenRouterModel(model_name="anthropic/claude-3.5-sonnet", model_kwargs={"temperature": 0.7})
+        model = OpenRouterModel(
+            model_name="anthropic/claude-3.5-sonnet", model_kwargs={"temperature": 0.7}
+        )
 
         initial_cost = GLOBAL_MODEL_STATS.cost
 
@@ -98,12 +100,17 @@ def test_openrouter_model_authentication_error():
             mock_response.status_code = 401
             mock_response.text = "Unauthorized"
             mock_post.return_value = mock_response
-            mock_post.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError()
+            mock_post.return_value.raise_for_status.side_effect = (
+                requests.exceptions.HTTPError()
+            )
 
             messages = [{"role": "user", "content": "test"}]
 
             # Patch the retry decorator to avoid waiting (auth errors don't retry anyway)
-            with patch("minisweagent.models.openrouter_model.retry", lambda **kwargs: lambda f: f):
+            with patch(
+                "minisweagent.models.openrouter_model.retry",
+                lambda **kwargs: lambda f: f,
+            ):
                 with pytest.raises(OpenRouterAuthenticationError) as exc_info:
                     model._query(messages)
 
@@ -133,7 +140,9 @@ def test_openrouter_model_no_cost_information(mock_response_no_cost):
 def test_openrouter_model_free_model_zero_cost(mock_response_no_cost):
     """Test that free models with zero cost work correctly when cost_tracking='ignore_errors' is set."""
     with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"}):
-        model = OpenRouterModel(model_name="anthropic/claude-3.5-sonnet", cost_tracking="ignore_errors")
+        model = OpenRouterModel(
+            model_name="anthropic/claude-3.5-sonnet", cost_tracking="ignore_errors"
+        )
 
         initial_cost = GLOBAL_MODEL_STATS.cost
 
@@ -162,7 +171,8 @@ def test_openrouter_model_config():
     """Test OpenRouter model configuration."""
     with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"}):
         model = OpenRouterModel(
-            model_name="anthropic/claude-3.5-sonnet", model_kwargs={"temperature": 0.5, "max_tokens": 1000}
+            model_name="anthropic/claude-3.5-sonnet",
+            model_kwargs={"temperature": 0.5, "max_tokens": 1000},
         )
 
         assert model.config.model_name == "anthropic/claude-3.5-sonnet"
@@ -175,7 +185,9 @@ def test_openrouter_model_config():
 def test_openrouter_model_get_template_vars():
     """Test get_template_vars method."""
     with patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key"}):
-        model = OpenRouterModel(model_name="anthropic/claude-3.5-sonnet", model_kwargs={"temperature": 0.7})
+        model = OpenRouterModel(
+            model_name="anthropic/claude-3.5-sonnet", model_kwargs={"temperature": 0.7}
+        )
 
         # Simulate some usage
         model.cost = 0.001234
@@ -201,11 +213,16 @@ def test_openrouter_model_no_api_key():
             mock_response.status_code = 401
             mock_response.text = "Unauthorized"
             mock_post.return_value = mock_response
-            mock_post.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError()
+            mock_post.return_value.raise_for_status.side_effect = (
+                requests.exceptions.HTTPError()
+            )
 
             messages = [{"role": "user", "content": "test"}]
 
             # Patch the retry decorator to avoid waiting
-            with patch("minisweagent.models.openrouter_model.retry", lambda **kwargs: lambda f: f):
+            with patch(
+                "minisweagent.models.openrouter_model.retry",
+                lambda **kwargs: lambda f: f,
+            ):
                 with pytest.raises(OpenRouterAuthenticationError):
                     model._query(messages)

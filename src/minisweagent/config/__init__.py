@@ -21,7 +21,9 @@ def get_config_path(config_spec: str | Path) -> Path:
         if candidate.exists():
             return candidate
 
-    raise FileNotFoundError(f"Could not find config file for {config_spec} (tried: {candidates})")
+    raise FileNotFoundError(
+        f"Could not find config file for {config_spec} (tried: {candidates})"
+    )
 
 
 __all__ = ["builtin_config_dir", "get_config_path"]

@@ -36,7 +36,10 @@ def test_portkey_model_initialization():
     mock_portkey_class.return_value = mock_client
 
     with patch("minisweagent.models.portkey_model.Portkey", mock_portkey_class):
-        with patch.dict(os.environ, {"PORTKEY_API_KEY": "test-key", "PORTKEY_VIRTUAL_KEY": "test-virtual"}):
+        with patch.dict(
+            os.environ,
+            {"PORTKEY_API_KEY": "test-key", "PORTKEY_VIRTUAL_KEY": "test-virtual"},
+        ):
             model = PortkeyModel(model_name="gpt-4o")
 
             assert model.config.model_name == "gpt-4o"
@@ -44,7 +47,9 @@ def test_portkey_model_initialization():
             assert model.n_calls == 0
 
             # Verify Portkey was called with correct parameters
-            mock_portkey_class.assert_called_once_with(api_key="test-key", virtual_key="test-virtual")
+            mock_portkey_class.assert_called_once_with(
+                api_key="test-key", virtual_key="test-virtual"
+            )
 
 
 def test_portkey_model_query():
@@ -65,7 +70,9 @@ def test_portkey_model_query():
 
     with patch("minisweagent.models.portkey_model.Portkey", mock_portkey_class):
         with patch.dict(os.environ, {"PORTKEY_API_KEY": "test-key"}):
-            with patch("minisweagent.models.portkey_model.litellm.cost_calculator.completion_cost") as mock_cost:
+            with patch(
+                "minisweagent.models.portkey_model.litellm.cost_calculator.completion_cost"
+            ) as mock_cost:
                 mock_cost.return_value = 0.01
 
                 model = PortkeyModel(model_name="gpt-4o")
@@ -80,9 +87,13 @@ def test_portkey_model_query():
                 assert model.cost == 0.01
 
                 # Verify the API was called correctly
-                mock_client.chat.completions.create.assert_called_once_with(model="gpt-4o", messages=messages)
+                mock_client.chat.completions.create.assert_called_once_with(
+                    model="gpt-4o", messages=messages
+                )
                 # Verify cost calculation was called
-                mock_cost.assert_called_once_with(mock_response.model_copy(), model=None)
+                mock_cost.assert_called_once_with(
+                    mock_response.model_copy(), model=None
+                )
 
 
 def test_portkey_model_get_template_vars():
@@ -165,7 +176,9 @@ def test_portkey_model_cost_validation_error():
         with patch.dict(os.environ, {"PORTKEY_API_KEY": "test-key"}):
             model = PortkeyModel(model_name="gpt-4o")
 
-            with patch("minisweagent.models.portkey_model.litellm.cost_calculator.completion_cost") as mock_cost:
+            with patch(
+                "minisweagent.models.portkey_model.litellm.cost_calculator.completion_cost"
+            ) as mock_cost:
                 mock_cost.side_effect = ValueError("Model not found")
 
                 messages = [{"role": "user", "content": "test"}]

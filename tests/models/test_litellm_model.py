@@ -21,7 +21,9 @@ def test_authentication_error_enhanced_message():
     with patch("litellm.completion") as mock_completion:
         # Make completion raise the mock error
         def side_effect(*args, **kwargs):
-            raise litellm.exceptions.AuthenticationError("Invalid API key", llm_provider="openai", model="gpt-4")
+            raise litellm.exceptions.AuthenticationError(
+                "Invalid API key", llm_provider="openai", model="gpt-4"
+            )
 
         mock_completion.side_effect = side_effect
 
@@ -29,7 +31,10 @@ def test_authentication_error_enhanced_message():
             model._query([{"role": "user", "content": "test"}])
 
         # Check that the error message was enhanced
-        assert "You can permanently set your API key with `mini-extra config set KEY VALUE`." in str(exc_info.value)
+        assert (
+            "You can permanently set your API key with `mini-extra config set KEY VALUE`."
+            in str(exc_info.value)
+        )
 
 
 def test_model_registry_loading():
@@ -50,7 +55,9 @@ def test_model_registry_loading():
 
     try:
         with patch("litellm.utils.register_model") as mock_register:
-            _model = LitellmModel(model_name="my-custom-model", litellm_model_registry=Path(registry_path))
+            _model = LitellmModel(
+                model_name="my-custom-model", litellm_model_registry=Path(registry_path)
+            )
 
             # Verify register_model was called with the correct data
             mock_register.assert_called_once_with(model_costs)
@@ -91,7 +98,10 @@ def test_litellm_model_cost_tracking_ignore_errors():
         mock_response.model_dump.return_value = {"test": "response"}
         mock_completion.return_value = mock_response
 
-        with patch("litellm.cost_calculator.completion_cost", side_effect=ValueError("Model not found")):
+        with patch(
+            "litellm.cost_calculator.completion_cost",
+            side_effect=ValueError("Model not found"),
+        ):
             messages = [{"role": "user", "content": "test"}]
             result = model.query(messages)
 

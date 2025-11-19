@@ -29,11 +29,15 @@ def test_custom_cost_and_multiple_models(reset_global_stats):
     model1 = DeterministicModel(outputs=["Response1"], cost_per_call=2.5)
     model2 = DeterministicModel(outputs=["Response2"], cost_per_call=3.0)
 
-    assert model1.query([{"role": "user", "content": "test"}]) == {"content": "Response1"}
+    assert model1.query([{"role": "user", "content": "test"}]) == {
+        "content": "Response1"
+    }
     assert model1.cost == 2.5
     assert minisweagent.models.GLOBAL_MODEL_STATS.cost == 2.5
 
-    assert model2.query([{"role": "user", "content": "test"}]) == {"content": "Response2"}
+    assert model2.query([{"role": "user", "content": "test"}]) == {
+        "content": "Response2"
+    }
     assert model2.cost == 3.0
     assert minisweagent.models.GLOBAL_MODEL_STATS.cost == 5.5
     assert minisweagent.models.GLOBAL_MODEL_STATS.n_calls == 2
@@ -41,7 +45,9 @@ def test_custom_cost_and_multiple_models(reset_global_stats):
 
 def test_config_dataclass():
     """Test DeterministicModelConfig with custom values."""
-    config = DeterministicModelConfig(outputs=["Test"], model_name="custom", cost_per_call=5.0)
+    config = DeterministicModelConfig(
+        outputs=["Test"], model_name="custom", cost_per_call=5.0
+    )
 
     assert config.cost_per_call == 5.0
     assert config.model_name == "custom"
@@ -55,13 +61,17 @@ def test_sleep_and_warning_commands(caplog):
     # Test sleep command - processes sleep then returns actual output (counts as 1 call)
     model = DeterministicModel(outputs=["/sleep0.1", "After sleep"])
     start_time = time.time()
-    assert model.query([{"role": "user", "content": "test"}]) == {"content": "After sleep"}
+    assert model.query([{"role": "user", "content": "test"}]) == {
+        "content": "After sleep"
+    }
     assert time.time() - start_time >= 0.1
     assert model.n_calls == 1  # Sleep no longer counts as separate call
 
     # Test warning command - processes warning then returns actual output (counts as 1 call)
     model2 = DeterministicModel(outputs=["/warningTest message", "After warning"])
     with caplog.at_level(logging.WARNING):
-        assert model2.query([{"role": "user", "content": "test"}]) == {"content": "After warning"}
+        assert model2.query([{"role": "user", "content": "test"}]) == {
+            "content": "After warning"
+        }
     assert model2.n_calls == 1  # Warning no longer counts as separate call
     assert "Test message" in caplog.text

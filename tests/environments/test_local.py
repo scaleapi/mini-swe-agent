@@ -29,7 +29,9 @@ def test_local_environment_basic_execution():
 
 def test_local_environment_set_env_variables():
     """Test setting environment variables in the local environment."""
-    env = LocalEnvironment(env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"})
+    env = LocalEnvironment(
+        env={"TEST_VAR": "test_value", "ANOTHER_VAR": "another_value"}
+    )
 
     # Test single environment variable
     result = env.execute("echo $TEST_VAR")
@@ -75,7 +77,10 @@ def test_local_environment_custom_cwd():
 
 def test_local_environment_cwd_parameter_override():
     """Test that the cwd parameter in execute() overrides the config cwd."""
-    with tempfile.TemporaryDirectory() as temp_dir1, tempfile.TemporaryDirectory() as temp_dir2:
+    with (
+        tempfile.TemporaryDirectory() as temp_dir1,
+        tempfile.TemporaryDirectory() as temp_dir2,
+    ):
         env = LocalEnvironment(cwd=temp_dir1)
 
         # Execute with different cwd parameter
@@ -109,7 +114,10 @@ def test_local_environment_nonexistent_command():
 
     result = env.execute("nonexistent_command_12345")
     assert result["returncode"] != 0
-    assert "nonexistent_command_12345" in result["output"] or "command not found" in result["output"]
+    assert (
+        "nonexistent_command_12345" in result["output"]
+        or "command not found" in result["output"]
+    )
 
 
 def test_local_environment_stderr_capture():

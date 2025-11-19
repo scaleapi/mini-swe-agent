@@ -53,7 +53,13 @@ _OUTPUT_FILE_LOCK = threading.Lock()
 class ProgressTrackingAgent(DefaultAgent):
     """Simple wrapper around DefaultAgent that provides progress updates."""
 
-    def __init__(self, *args, progress_manager: RunBatchProgressManager, instance_id: str = "", **kwargs):
+    def __init__(
+        self,
+        *args,
+        progress_manager: RunBatchProgressManager,
+        instance_id: str = "",
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.progress_manager: RunBatchProgressManager = progress_manager
         self.instance_id = instance_id
@@ -61,7 +67,8 @@ class ProgressTrackingAgent(DefaultAgent):
     def step(self) -> dict:
         """Override step to provide progress updates."""
         self.progress_manager.update_instance_status(
-            self.instance_id, f"Step {self.model.n_calls + 1:3d} (${self.model.cost:.2f})"
+            self.instance_id,
+            f"Step {self.model.n_calls + 1:3d} (${self.model.cost:.2f})",
         )
         return super().step()
 
@@ -73,7 +80,9 @@ def get_swebench_docker_image_name(instance: dict) -> str:
         # Docker doesn't allow double underscore, so we replace them with a magic token
         iid = instance["instance_id"]
         id_docker_compatible = iid.replace("__", "_1776_")
-        image_name = f"docker.io/swebench/sweb.eval.x86_64.{id_docker_compatible}:latest".lower()
+        image_name = (
+            f"docker.io/swebench/sweb.eval.x86_64.{id_docker_compatible}:latest".lower()
+        )
     return image_name
 
 
@@ -87,14 +96,18 @@ def get_sb_environment(config: dict, instance: dict) -> Environment:
         env_config["image"] = "docker://" + image_name
     env = get_environment(env_config)
     if startup_command := config.get("run", {}).get("env_startup_command"):
-        startup_command = Template(startup_command, undefined=StrictUndefined).render(**instance)
+        startup_command = Template(startup_command, undefined=StrictUndefined).render(
+            **instance
+        )
         out = env.execute(startup_command)
         if out["returncode"] != 0:
             raise RuntimeError(f"Error executing startup command: {out}")
     return env
 
 
-def update_preds_file(output_path: Path, instance_id: str, model_name: str, result: str):
+def update_preds_file(
+    output_path: Path, instance_id: str, model_name: str, result: str
+):
     """Update the output JSON file with results from a single instance."""
     with _OUTPUT_FILE_LOCK:
         output_data = {}
@@ -164,12 +177,18 @@ def process_instance(
             instance_id=instance_id,
             print_fct=logger.info,
         )
-        update_preds_file(output_dir / "preds.json", instance_id, model.config.model_name, result)
+        update_preds_file(
+            output_dir / "preds.json", instance_id, model.config.model_name, result
+        )
         progress_manager.on_instance_end(instance_id, exit_status)
 
 
 def filter_instances(
-    instances: list[dict], *, filter_spec: str, slice_spec: str = "", shuffle: bool = False
+    instances: list[dict],
+    *,
+    filter_spec: str,
+    slice_spec: str = "",
+    shuffle: bool = False,
 ) -> list[dict]:
     """Filter and slice a list of SWEBench instances."""
     if shuffle:
@@ -177,7 +196,11 @@ def filter_instances(
         random.seed(42)
         random.shuffle(instances)
     before_filter = len(instances)
-    instances = [instance for instance in instances if re.match(filter_spec, instance["instance_id"])]
+    instances = [
+        instance
+        for instance in instances
+        if re.match(filter_spec, instance["instance_id"])
+    ]
     if (after_filter := len(instances)) != before_filter:
         logger.info(f"Instance filter: {before_filter} -> {after_filter} instances")
     if slice_spec:
