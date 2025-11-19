@@ -34,7 +34,13 @@ class DockerEnvironmentConfig:
 
 
 class DockerEnvironment:
-    def __init__(self, *, config_class: type = DockerEnvironmentConfig, logger: logging.Logger | None = None, **kwargs):
+    def __init__(
+        self,
+        *,
+        config_class: type = DockerEnvironmentConfig,
+        logger: logging.Logger | None = None,
+        **kwargs,
+    ):
         """This class executes bash commands in a Docker container using direct docker commands.
         See `DockerEnvironmentConfig` for keyword arguments.
         """
@@ -70,10 +76,14 @@ class DockerEnvironment:
             timeout=self.config.pull_timeout,  # docker pull might take a while
             check=True,
         )
-        self.logger.info(f"Started container {container_name} with ID {result.stdout.strip()}")
+        self.logger.info(
+            f"Started container {container_name} with ID {result.stdout.strip()}"
+        )
         self.container_id = result.stdout.strip()
 
-    def execute(self, command: str, cwd: str = "", *, timeout: int | None = None) -> dict[str, Any]:
+    def execute(
+        self, command: str, cwd: str = "", *, timeout: int | None = None
+    ) -> dict[str, Any]:
         """Execute a command in the Docker container and return the result as a dict."""
         cwd = cwd or self.config.cwd
         assert self.container_id, "Container not started"
@@ -99,7 +109,9 @@ class DockerEnvironment:
 
     def cleanup(self):
         """Stop and remove the Docker container."""
-        if getattr(self, "container_id", None) is not None:  # if init fails early, container_id might not be set
+        if (
+            getattr(self, "container_id", None) is not None
+        ):  # if init fails early, container_id might not be set
             cmd = f"(timeout 60 {self.config.executable} stop {self.container_id} || {self.config.executable} rm -f {self.container_id}) >/dev/null 2>&1 &"
             subprocess.Popen(cmd, shell=True)
 

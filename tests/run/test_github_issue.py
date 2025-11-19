@@ -16,7 +16,9 @@ def normalize_outputs(s: str) -> str:
     return "\n".join(line.rstrip() for line in s.strip().split("\n"))
 
 
-def assert_observations_match(expected_observations: list[str], messages: list[dict]) -> None:
+def assert_observations_match(
+    expected_observations: list[str], messages: list[dict]
+) -> None:
     """Compare expected observations with actual observations from agent messages
 
     Args:
@@ -31,23 +33,27 @@ def assert_observations_match(expected_observations: list[str], messages: list[d
         assert messages[user_message_index]["role"] == "user"
         actual_observations.append(messages[user_message_index]["content"])
 
-    assert len(actual_observations) == len(expected_observations), (
-        f"Expected {len(expected_observations)} observations, got {len(actual_observations)}"
-    )
+    assert len(actual_observations) == len(
+        expected_observations
+    ), f"Expected {len(expected_observations)} observations, got {len(actual_observations)}"
 
-    for i, (expected_observation, actual_observation) in enumerate(zip(expected_observations, actual_observations)):
+    for i, (expected_observation, actual_observation) in enumerate(
+        zip(expected_observations, actual_observations)
+    ):
         normalized_actual = normalize_outputs(actual_observation)
         normalized_expected = normalize_outputs(expected_observation)
 
-        assert normalized_actual == normalized_expected, (
-            f"Step {i + 1} observation mismatch:\nExpected: {repr(normalized_expected)}\nActual: {repr(normalized_actual)}"
-        )
+        assert (
+            normalized_actual == normalized_expected
+        ), f"Step {i + 1} observation mismatch:\nExpected: {repr(normalized_expected)}\nActual: {repr(normalized_actual)}"
 
 
 def test_configure_if_first_time_called():
     """Test that configure_if_first_time is called when running github_issue main."""
     with (
-        patch("minisweagent.run.github_issue.configure_if_first_time") as mock_configure,
+        patch(
+            "minisweagent.run.github_issue.configure_if_first_time"
+        ) as mock_configure,
         patch("minisweagent.run.github_issue.fetch_github_issue") as mock_fetch,
         patch("minisweagent.run.github_issue.InteractiveAgent") as mock_agent,
         patch("minisweagent.run.github_issue.get_model"),
@@ -63,7 +69,12 @@ def test_configure_if_first_time_called():
         mock_agent_instance.run.return_value = (0, "success")
         mock_agent_instance.env.execute.return_value = None
 
-        main(issue_url="https://github.com/test/repo/issues/1", config=DEFAULT_CONFIG, model="test-model", yolo=True)
+        main(
+            issue_url="https://github.com/test/repo/issues/1",
+            config=DEFAULT_CONFIG,
+            model="test-model",
+            yolo=True,
+        )
 
         mock_configure.assert_called_once()
 
@@ -78,7 +89,9 @@ def test_github_issue_end_to_end(github_test_data):
     with (
         patch("minisweagent.run.github_issue.configure_if_first_time"),
         patch("minisweagent.run.github_issue.get_model") as mock_get_model,
-        patch("minisweagent.agents.interactive.prompt_session.prompt", return_value=""),  # No new task
+        patch(
+            "minisweagent.agents.interactive.prompt_session.prompt", return_value=""
+        ),  # No new task
     ):
         mock_get_model.return_value = DeterministicModel(outputs=model_responses)
         github_url = "https://github.com/SWE-agent/test-repo/issues/1"
@@ -90,10 +103,12 @@ def test_github_issue_end_to_end(github_test_data):
     # Verify we have the right number of messages
     # Should be: system + user (initial) + (assistant + user) * number_of_steps
     expected_total_messages = 2 + (len(model_responses) * 2)
-    assert len(messages) == expected_total_messages, f"Expected {expected_total_messages} messages, got {len(messages)}"
+    assert (
+        len(messages) == expected_total_messages
+    ), f"Expected {expected_total_messages} messages, got {len(messages)}"
 
     assert_observations_match(expected_observations, messages)
 
-    assert agent.model.n_calls == len(model_responses), (
-        f"Expected {len(model_responses)} steps, got {agent.model.n_calls}"
-    )
+    assert agent.model.n_calls == len(
+        model_responses
+    ), f"Expected {len(model_responses)} steps, got {agent.model.n_calls}"

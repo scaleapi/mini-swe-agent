@@ -1,7 +1,10 @@
 import pytest
 import yaml
 
-from minisweagent.run.extra.utils.batch_progress import RunBatchProgressManager, _shorten_str
+from minisweagent.run.extra.utils.batch_progress import (
+    RunBatchProgressManager,
+    _shorten_str,
+)
 
 
 @pytest.fixture
@@ -14,7 +17,10 @@ def manager():
 def manager_with_yaml(tmp_path):
     """Create a RunBatchProgressManager with yaml reporting."""
     yaml_path = tmp_path / "report.yaml"
-    return RunBatchProgressManager(num_instances=3, yaml_report_path=yaml_path), yaml_path
+    return (
+        RunBatchProgressManager(num_instances=3, yaml_report_path=yaml_path),
+        yaml_path,
+    )
 
 
 @pytest.mark.parametrize(
@@ -133,4 +139,7 @@ def test_concurrent_operations(manager):
         manager.on_instance_end(instance_id, statuses[i % 3])
 
     assert manager.n_completed == 10
-    assert sum(len(instances) for instances in manager._instances_by_exit_status.values()) == 10
+    assert (
+        sum(len(instances) for instances in manager._instances_by_exit_status.values())
+        == 10
+    )

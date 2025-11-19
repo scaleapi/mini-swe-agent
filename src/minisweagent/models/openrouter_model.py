@@ -25,7 +25,9 @@ class OpenRouterModelConfig:
     model_kwargs: dict[str, Any] = field(default_factory=dict)
     set_cache_control: Literal["default_end"] | None = None
     """Set explicit cache control markers, for example for Anthropic models"""
-    cost_tracking: Literal["default", "ignore_errors"] = os.getenv("MSWEA_COST_TRACKING", "default")
+    cost_tracking: Literal["default", "ignore_errors"] = os.getenv(
+        "MSWEA_COST_TRACKING", "default"
+    )
     """Cost tracking mode for this model. Can be "default" or "ignore_errors" (ignore errors/missing cost info)"""
 
 
@@ -56,7 +58,9 @@ class OpenRouterModel:
         self._api_key = os.getenv("OPENROUTER_API_KEY", "")
 
     @retry(
-        stop=stop_after_attempt(int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))),
+        stop=stop_after_attempt(
+            int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))
+        ),
         wait=wait_exponential(multiplier=1, min=4, max=60),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         retry=retry_if_not_exception_type(
@@ -80,7 +84,9 @@ class OpenRouterModel:
         }
 
         try:
-            response = requests.post(self._api_url, headers=headers, data=json.dumps(payload), timeout=60)
+            response = requests.post(
+                self._api_url, headers=headers, data=json.dumps(payload), timeout=60
+            )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
@@ -90,7 +96,9 @@ class OpenRouterModel:
             elif response.status_code == 429:
                 raise OpenRouterRateLimitError("Rate limit exceeded") from e
             else:
-                raise OpenRouterAPIError(f"HTTP {response.status_code}: {response.text}") from e
+                raise OpenRouterAPIError(
+                    f"HTTP {response.status_code}: {response.text}"
+                ) from e
         except requests.exceptions.RequestException as e:
             raise OpenRouterAPIError(f"Request failed: {e}") from e
 
@@ -122,4 +130,7 @@ class OpenRouterModel:
         }
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config) | {"n_model_calls": self.n_calls, "model_cost": self.cost}
+        return asdict(self.config) | {
+            "n_model_calls": self.n_calls,
+            "model_cost": self.cost,
+        }

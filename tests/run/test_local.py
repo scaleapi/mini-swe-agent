@@ -14,7 +14,9 @@ def test_local_end_to_end(local_test_data):
     with (
         patch("minisweagent.run.mini.configure_if_first_time"),
         patch("minisweagent.models.litellm_model.LitellmModel") as mock_model_class,
-        patch("minisweagent.agents.interactive.prompt_session.prompt", return_value=""),  # No new task
+        patch(
+            "minisweagent.agents.interactive.prompt_session.prompt", return_value=""
+        ),  # No new task
     ):
         mock_model_class.return_value = DeterministicModel(outputs=model_responses)
         agent = main(
@@ -34,10 +36,12 @@ def test_local_end_to_end(local_test_data):
     # Verify we have the right number of messages
     # Should be: system + user (initial) + (assistant + user) * number_of_steps
     expected_total_messages = 2 + (len(model_responses) * 2)
-    assert len(messages) == expected_total_messages, f"Expected {expected_total_messages} messages, got {len(messages)}"
+    assert (
+        len(messages) == expected_total_messages
+    ), f"Expected {expected_total_messages} messages, got {len(messages)}"
 
     assert_observations_match(expected_observations, messages)
 
-    assert agent.model.n_calls == len(model_responses), (
-        f"Expected {len(model_responses)} steps, got {agent.model.n_calls}"
-    )
+    assert agent.model.n_calls == len(
+        model_responses
+    ), f"Expected {len(model_responses)} steps, got {agent.model.n_calls}"

@@ -56,7 +56,9 @@ class RunBatchProgressManager:
         self._instances_by_exit_status = collections.defaultdict(list)
         self._main_progress_bar = Progress(
             SpinnerColumn(spinner_name="dots2"),
-            TextColumn("[progress.description]{task.description} (${task.fields[total_cost]})"),
+            TextColumn(
+                "[progress.description]{task.description} (${task.fields[total_cost]})"
+            ),
             BarColumn(),
             MofNCompleteColumn(),
             TaskProgressColumn(),
@@ -79,18 +81,24 @@ class RunBatchProgressManager:
             "[cyan]Overall Progress", total=num_instances, total_cost="0.00", eta=""
         )
 
-        self.render_group = Group(Table(), self._task_progress_bar, self._main_progress_bar)
+        self.render_group = Group(
+            Table(), self._task_progress_bar, self._main_progress_bar
+        )
         self._yaml_report_path = yaml_report_path
 
     @property
     def n_completed(self) -> int:
-        return sum(len(instances) for instances in self._instances_by_exit_status.values())
+        return sum(
+            len(instances) for instances in self._instances_by_exit_status.values()
+        )
 
     def _get_eta_text(self) -> str:
         """Calculate estimated time remaining based on current progress."""
         try:
             estimated_remaining = (
-                (time.time() - self._start_time) / self.n_completed * (self._total_instances - self.n_completed)
+                (time.time() - self._start_time)
+                / self.n_completed
+                * (self._total_instances - self.n_completed)
             )
             return f"eta: {timedelta(seconds=int(estimated_remaining))}"
         except ZeroDivisionError:
@@ -107,7 +115,11 @@ class RunBatchProgressManager:
         with self._lock:
             t.show_header = True
             # Sort by number of instances in descending order
-            sorted_items = sorted(self._instances_by_exit_status.items(), key=lambda x: len(x[1]), reverse=True)
+            sorted_items = sorted(
+                self._instances_by_exit_status.items(),
+                key=lambda x: len(x[1]),
+                reverse=True,
+            )
             for status, instances in sorted_items:
                 instances_str = _shorten_str(", ".join(reversed(instances)), 55)
                 t.add_row(status, str(len(instances)), instances_str)
@@ -149,7 +161,9 @@ class RunBatchProgressManager:
                 self._task_progress_bar.remove_task(self._spinner_tasks[instance_id])
             except KeyError:
                 pass
-            self._main_progress_bar.update(TaskID(0), advance=1, eta=self._get_eta_text())
+            self._main_progress_bar.update(
+                TaskID(0), advance=1, eta=self._get_eta_text()
+            )
         self.update_exit_status_table()
         self._update_total_costs()
         if self._yaml_report_path is not None:

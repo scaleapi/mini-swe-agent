@@ -21,10 +21,14 @@ class SwerexDockerEnvironment:
     def __init__(self, **kwargs):
         """This class executes bash commands in a Docker container using SWE-ReX for sandboxing."""
         self.config = SwerexDockerEnvironmentConfig(**kwargs)
-        self.deployment = DockerDeployment(image=self.config.image, **self.config.deployment_extra_kwargs)
+        self.deployment = DockerDeployment(
+            image=self.config.image, **self.config.deployment_extra_kwargs
+        )
         asyncio.run(self.deployment.start())
 
-    def execute(self, command: str, cwd: str = "", *, timeout: int | None = None) -> dict[str, Any]:
+    def execute(
+        self, command: str, cwd: str = "", *, timeout: int | None = None
+    ) -> dict[str, Any]:
         """Execute a command in the environment and return the raw output."""
         output = asyncio.run(
             self.deployment.runtime.execute(

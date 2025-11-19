@@ -35,14 +35,19 @@ def _set_cache_control(entry: dict) -> None:
 
 
 def set_cache_control(
-    messages: list[dict], *, mode: Literal["default_end"] | None = "default_end", last_n_messages_offset: int = 0
+    messages: list[dict],
+    *,
+    mode: Literal["default_end"] | None = "default_end",
+    last_n_messages_offset: int = 0,
 ) -> list[dict]:
     """This messages processor adds manual cache control marks to the messages."""
     # ONLY ADD TO THE LAST MESSAGE
     if mode != "default_end":
         raise ValueError(f"Invalid mode: {mode}")
     if last_n_messages_offset:
-        warnings.warn("last_n_messages_offset is deprecated and will be removed in the future. It has no effect.")
+        warnings.warn(
+            "last_n_messages_offset is deprecated and will be removed in the future. It has no effect."
+        )
 
     messages = copy.deepcopy(messages)
     new_messages = []

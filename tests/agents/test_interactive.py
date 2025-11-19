@@ -12,7 +12,9 @@ def test_successful_completion_with_confirmation():
     ):  # Confirm action with Enter, then no new task
         agent = InteractiveAgent(
             model=DeterministicModel(
-                outputs=["Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"]
+                outputs=[
+                    "Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"
+                ]
             ),
             env=LocalEnvironment(),
         )
@@ -48,7 +50,11 @@ def test_action_rejection_and_recovery():
         assert result == "recovered\n"
         assert agent.model.n_calls == 2
         # Should have rejection message in conversation
-        rejection_messages = [msg for msg in agent.messages if "User rejected this action" in msg.get("content", "")]
+        rejection_messages = [
+            msg
+            for msg in agent.messages
+            if "User rejected this action" in msg.get("content", "")
+        ]
         assert len(rejection_messages) == 1
 
 
@@ -64,7 +70,9 @@ def test_yolo_mode_activation():
     ):
         agent = InteractiveAgent(
             model=DeterministicModel(
-                outputs=["Test command\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'yolo works'\n```"]
+                outputs=[
+                    "Test command\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'yolo works'\n```"
+                ]
             ),
             env=LocalEnvironment(),
         )
@@ -88,7 +96,9 @@ def test_help_command():
         with patch("minisweagent.agents.interactive.console.print") as mock_print:
             agent = InteractiveAgent(
                 model=DeterministicModel(
-                    outputs=["Test help\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'help shown'\n```"]
+                    outputs=[
+                        "Test help\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'help shown'\n```"
+                    ]
                 ),
                 env=LocalEnvironment(),
             )
@@ -97,7 +107,9 @@ def test_help_command():
             assert exit_status == "Submitted"
             assert result == "help shown\n"
             # Check that help was printed
-            help_calls = [call for call in mock_print.call_args_list if "/y" in str(call)]
+            help_calls = [
+                call for call in mock_print.call_args_list if "/y" in str(call)
+            ]
             assert len(help_calls) > 0
 
 
@@ -122,7 +134,9 @@ def test_whitelisted_actions_skip_confirmation():
         assert result == "no confirmation needed\n"
 
 
-def _test_interruption_helper(interruption_input, expected_message_fragment, problem_statement="Test interruption"):
+def _test_interruption_helper(
+    interruption_input, expected_message_fragment, problem_statement="Test interruption"
+):
     """Helper function for testing interruption scenarios."""
     agent = InteractiveAgent(
         model=DeterministicModel(
@@ -155,14 +169,20 @@ def _test_interruption_helper(interruption_input, expected_message_fragment, pro
             return interruption_input  # For the interruption handling
         return ""  # Confirm all subsequent actions
 
-    with patch("minisweagent.agents.interactive.prompt_session.prompt", side_effect=mock_input):
+    with patch(
+        "minisweagent.agents.interactive.prompt_session.prompt", side_effect=mock_input
+    ):
         with patch.object(agent, "query", side_effect=mock_query):
             exit_status, result = agent.run(problem_statement)
 
     assert exit_status == "Submitted"
     assert result == "recovered from interrupt\n"
     # Check that the expected interruption message was added
-    interrupt_messages = [msg for msg in agent.messages if expected_message_fragment in msg.get("content", "")]
+    interrupt_messages = [
+        msg
+        for msg in agent.messages
+        if expected_message_fragment in msg.get("content", "")
+    ]
     assert len(interrupt_messages) == 1
 
     return agent, interrupt_messages[0]
@@ -170,7 +190,9 @@ def _test_interruption_helper(interruption_input, expected_message_fragment, pro
 
 def test_interruption_handling_with_message():
     """Test that interruption with user message is handled properly."""
-    agent, interrupt_message = _test_interruption_helper("User interrupted", "Interrupted by user")
+    agent, interrupt_message = _test_interruption_helper(
+        "User interrupted", "Interrupted by user"
+    )
 
     # Additional verification specific to this test
     assert "User interrupted" in interrupt_message["content"]
@@ -245,7 +267,9 @@ def test_human_mode_basic_functionality():
         ],
     ):
         agent = InteractiveAgent(
-            model=DeterministicModel(outputs=[]),  # LM shouldn't be called in human mode
+            model=DeterministicModel(
+                outputs=[]
+            ),  # LM shouldn't be called in human mode
             env=LocalEnvironment(),
             mode="human",
         )
@@ -337,7 +361,11 @@ def test_confirmation_mode_switch_to_human_with_rejection():
         assert result == "human command after rejection\n"
         assert agent.config.mode == "human"
         # Should have rejection message
-        rejection_messages = [msg for msg in agent.messages if "Switching to human mode" in msg.get("content", "")]
+        rejection_messages = [
+            msg
+            for msg in agent.messages
+            if "Switching to human mode" in msg.get("content", "")
+        ]
         assert len(rejection_messages) == 1
 
 
@@ -404,7 +432,11 @@ def test_mode_switch_during_keyboard_interrupt():
     assert result == "recovered after mode switch\n"
     assert agent.config.mode == "yolo"
     # Should have interruption message
-    interrupt_messages = [msg for msg in agent.messages if "Temporary interruption caught" in msg.get("content", "")]
+    interrupt_messages = [
+        msg
+        for msg in agent.messages
+        if "Temporary interruption caught" in msg.get("content", "")
+    ]
     assert len(interrupt_messages) == 1
 
 
@@ -486,7 +518,9 @@ def test_all_mode_transitions_confirm_to_human():
         ],
     ):
         agent = InteractiveAgent(
-            model=DeterministicModel(outputs=["LM action\n```bash\necho 'rejected action'\n```"]),
+            model=DeterministicModel(
+                outputs=["LM action\n```bash\necho 'rejected action'\n```"]
+            ),
             env=LocalEnvironment(),
             mode="confirm",
         )
@@ -523,7 +557,11 @@ def test_help_command_from_different_contexts():
             assert exit_status == "Submitted"
             assert result == "help works\n"
             # Verify help was shown
-            help_calls = [call for call in mock_print.call_args_list if "Current mode: " in str(call)]
+            help_calls = [
+                call
+                for call in mock_print.call_args_list
+                if "Current mode: " in str(call)
+            ]
             assert len(help_calls) > 0
 
 
@@ -548,7 +586,11 @@ def test_help_command_from_human_mode():
             assert exit_status == "Submitted"
             assert result == "help in human mode\n"
             # Verify help was shown
-            help_calls = [call for call in mock_print.call_args_list if "Current mode: " in str(call)]
+            help_calls = [
+                call
+                for call in mock_print.call_args_list
+                if "Current mode: " in str(call)
+            ]
             assert len(help_calls) > 0
 
 
@@ -616,10 +658,18 @@ def test_limits_exceeded_with_user_continuation():
     )
 
     # Mock input() to provide new limits when prompted
-    with patch("builtins.input", side_effect=["10", "5.0"]):  # New step_limit=10, cost_limit=5.0
-        with patch("minisweagent.agents.interactive.prompt_session.prompt", side_effect=[""]):  # No new task
-            with patch("minisweagent.agents.interactive.console.print"):  # Suppress console output
-                exit_status, result = agent.run("Test limits exceeded with continuation")
+    with patch(
+        "builtins.input", side_effect=["10", "5.0"]
+    ):  # New step_limit=10, cost_limit=5.0
+        with patch(
+            "minisweagent.agents.interactive.prompt_session.prompt", side_effect=[""]
+        ):  # No new task
+            with patch(
+                "minisweagent.agents.interactive.console.print"
+            ):  # Suppress console output
+                exit_status, result = agent.run(
+                    "Test limits exceeded with continuation"
+                )
 
     assert exit_status == "Submitted"
     assert result == "completed after limit increase\n"
@@ -650,7 +700,9 @@ def test_limits_exceeded_multiple_times_with_continuation():
     # Mock input() to provide new limits multiple times
     # First limit increase: step_limit=2, then step_limit=10 when exceeded again
     with patch("builtins.input", side_effect=["2", "100.0", "10", "100.0"]):
-        with patch("minisweagent.agents.interactive.prompt_session.prompt", side_effect=[""]):  # No new task
+        with patch(
+            "minisweagent.agents.interactive.prompt_session.prompt", side_effect=[""]
+        ):  # No new task
             with patch("minisweagent.agents.interactive.console.print"):
                 exit_status, result = agent.run("Test multiple limit increases")
 
@@ -687,7 +739,9 @@ def test_continue_after_completion_with_new_task():
         assert agent.model.n_calls == 2
         # Should have the new task message in conversation
         new_task_messages = [
-            msg for msg in agent.messages if "The user added a new task: Create a new file" in msg.get("content", "")
+            msg
+            for msg in agent.messages
+            if "The user added a new task: Create a new file" in msg.get("content", "")
         ]
         assert len(new_task_messages) == 1
 
@@ -715,7 +769,11 @@ def test_continue_after_completion_without_new_task():
         assert result == "original task completed\n"
         assert agent.model.n_calls == 1
         # Should not have any new task messages
-        new_task_messages = [msg for msg in agent.messages if "The user added a new task" in msg.get("content", "")]
+        new_task_messages = [
+            msg
+            for msg in agent.messages
+            if "The user added a new task" in msg.get("content", "")
+        ]
         assert len(new_task_messages) == 0
 
 
@@ -748,7 +806,11 @@ def test_continue_after_completion_multiple_cycles():
         assert result == "third completed\n"
         assert agent.model.n_calls == 3
         # Should have both new task messages
-        new_task_messages = [msg for msg in agent.messages if "The user added a new task" in msg.get("content", "")]
+        new_task_messages = [
+            msg
+            for msg in agent.messages
+            if "The user added a new task" in msg.get("content", "")
+        ]
         assert len(new_task_messages) == 2
         assert "Second task" in new_task_messages[0]["content"]
         assert "Third task" in new_task_messages[1]["content"]
@@ -780,7 +842,11 @@ def test_continue_after_completion_in_yolo_mode():
         assert agent.config.mode == "yolo"
         assert agent.model.n_calls == 2
         # Should have the new task message
-        new_task_messages = [msg for msg in agent.messages if "Create a second task" in msg.get("content", "")]
+        new_task_messages = [
+            msg
+            for msg in agent.messages
+            if "Create a second task" in msg.get("content", "")
+        ]
         assert len(new_task_messages) == 1
 
 
@@ -792,7 +858,9 @@ def test_confirm_exit_enabled_asks_for_confirmation():
     ):
         agent = InteractiveAgent(
             model=DeterministicModel(
-                outputs=["Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"]
+                outputs=[
+                    "Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"
+                ]
             ),
             env=LocalEnvironment(),
             confirm_exit=True,  # Should ask for confirmation
@@ -812,7 +880,9 @@ def test_confirm_exit_disabled_exits_immediately():
     ):
         agent = InteractiveAgent(
             model=DeterministicModel(
-                outputs=["Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"]
+                outputs=[
+                    "Finishing\n```bash\necho 'COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT'\necho 'completed'\n```"
+                ]
             ),
             env=LocalEnvironment(),
             confirm_exit=False,  # Should NOT ask for confirmation
@@ -851,7 +921,11 @@ def test_confirm_exit_with_new_task_continues_execution():
         assert result == "additional done\n"
         assert agent.model.n_calls == 2
         # Check that the new task was added to the conversation
-        new_task_messages = [msg for msg in agent.messages if "Please do one more thing" in msg.get("content", "")]
+        new_task_messages = [
+            msg
+            for msg in agent.messages
+            if "Please do one more thing" in msg.get("content", "")
+        ]
         assert len(new_task_messages) == 1
 
 

@@ -40,7 +40,9 @@ class PortkeyModelConfig:
     """
     set_cache_control: Literal["default_end"] | None = None
     """Set explicit cache control markers, for example for Anthropic models"""
-    cost_tracking: Literal["default", "ignore_errors"] = os.getenv("MSWEA_COST_TRACKING", "default")
+    cost_tracking: Literal["default", "ignore_errors"] = os.getenv(
+        "MSWEA_COST_TRACKING", "default"
+    )
     """Cost tracking mode for this model. Can be "default" or "ignore_errors" (ignore errors/missing cost info)"""
 
 
@@ -53,8 +55,13 @@ class PortkeyModel:
         self.config = PortkeyModelConfig(**kwargs)
         self.cost = 0.0
         self.n_calls = 0
-        if self.config.litellm_model_registry and Path(self.config.litellm_model_registry).is_file():
-            litellm.utils.register_model(json.loads(Path(self.config.litellm_model_registry).read_text()))
+        if (
+            self.config.litellm_model_registry
+            and Path(self.config.litellm_model_registry).is_file()
+        ):
+            litellm.utils.register_model(
+                json.loads(Path(self.config.litellm_model_registry).read_text())
+            )
 
         # Get API key from environment or raise error
         self._api_key = os.getenv("PORTKEY_API_KEY")
@@ -76,7 +83,9 @@ class PortkeyModel:
         self.client = Portkey(**client_kwargs)
 
     @retry(
-        stop=stop_after_attempt(int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))),
+        stop=stop_after_attempt(
+            int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))
+        ),
         wait=wait_exponential(multiplier=1, min=4, max=60),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         retry=retry_if_not_exception_type((KeyboardInterrupt, TypeError, ValueError)),
@@ -106,7 +115,10 @@ class PortkeyModel:
         }
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config) | {"n_model_calls": self.n_calls, "model_cost": self.cost}
+        return asdict(self.config) | {
+            "n_model_calls": self.n_calls,
+            "model_cost": self.cost,
+        }
 
     def _calculate_cost(self, response) -> float:
         response_for_cost_calc = response.model_copy()
@@ -134,10 +146,13 @@ class PortkeyModel:
                 "Setting prompt tokens based on total tokens and completion tokens. You might want to double check your costs. "
                 f"Full response: {response_for_cost_calc.model_dump()}"
             )
-            response_for_cost_calc.usage.prompt_tokens = total_tokens - completion_tokens
+            response_for_cost_calc.usage.prompt_tokens = (
+                total_tokens - completion_tokens
+            )
         try:
             cost = litellm.cost_calculator.completion_cost(
-                response_for_cost_calc, model=self.config.litellm_model_name_override or None
+                response_for_cost_calc,
+                model=self.config.litellm_model_name_override or None,
             )
             assert cost >= 0.0, f"Cost is negative: {cost}"
         except Exception as e:

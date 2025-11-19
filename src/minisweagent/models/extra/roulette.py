@@ -28,7 +28,10 @@ class RouletteModel:
         return sum(model.n_calls for model in self.models)
 
     def get_template_vars(self) -> dict:
-        return asdict(self.config) | {"n_model_calls": self.n_calls, "model_cost": self.cost}
+        return asdict(self.config) | {
+            "n_model_calls": self.n_calls,
+            "model_cost": self.cost,
+        }
 
     def select_model(self) -> Model:
         return random.choice(self.models)

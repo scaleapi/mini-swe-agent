@@ -14,7 +14,9 @@ from minisweagent.models import get_model
 from minisweagent.run.extra.config import configure_if_first_time
 from minisweagent.run.utils.save import save_traj
 
-DEFAULT_CONFIG = Path(os.getenv("MSWEA_GITHUB_CONFIG_PATH", builtin_config_dir / "github_issue.yaml"))
+DEFAULT_CONFIG = Path(
+    os.getenv("MSWEA_GITHUB_CONFIG_PATH", builtin_config_dir / "github_issue.yaml")
+)
 console = Console(highlight=False)
 app = typer.Typer(rich_markup_mode="rich", add_completion=False)
 
@@ -22,7 +24,9 @@ app = typer.Typer(rich_markup_mode="rich", add_completion=False)
 def fetch_github_issue(issue_url: str) -> str:
     """Fetch GitHub issue text from the URL."""
     # Convert GitHub issue URL to API URL
-    api_url = issue_url.replace("github.com", "api.github.com/repos").replace("/issues/", "/issues/")
+    api_url = issue_url.replace("github.com", "api.github.com/repos").replace(
+        "/issues/", "/issues/"
+    )
 
     headers = {}
     if github_token := os.getenv("GITHUB_TOKEN"):

@@ -47,7 +47,10 @@ def get_test_data(trajectory_name: str) -> dict[str, list[str]]:
         elif message["role"] == "user":
             expected_observations.append(message["content"])
 
-    return {"model_responses": model_responses, "expected_observations": expected_observations}
+    return {
+        "model_responses": model_responses,
+        "expected_observations": expected_observations,
+    }
 
 
 @pytest.fixture

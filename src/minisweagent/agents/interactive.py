@@ -16,10 +16,18 @@ from rich.console import Console
 from rich.rule import Rule
 
 from minisweagent import global_config_dir
-from minisweagent.agents.default import AgentConfig, DefaultAgent, LimitsExceeded, NonTerminatingException, Submitted
+from minisweagent.agents.default import (
+    AgentConfig,
+    DefaultAgent,
+    LimitsExceeded,
+    NonTerminatingException,
+    Submitted,
+)
 
 console = Console(highlight=False)
-prompt_session = PromptSession(history=FileHistory(global_config_dir / "interactive_history.txt"))
+prompt_session = PromptSession(
+    history=FileHistory(global_config_dir / "interactive_history.txt")
+)
 
 
 @dataclass
@@ -49,14 +57,22 @@ class InteractiveAgent(DefaultAgent):
                 highlight=False,
             )
         else:
-            console.print(f"\n[bold green]{role.capitalize()}[/bold green]:\n", end="", highlight=False)
+            console.print(
+                f"\n[bold green]{role.capitalize()}[/bold green]:\n",
+                end="",
+                highlight=False,
+            )
         console.print(content, highlight=False, markup=False)
 
     def query(self) -> dict:
         # Extend supermethod to handle human mode
         if self.config.mode == "human":
-            match command := self._prompt_and_handle_special("[bold yellow]>[/bold yellow] "):
-                case "/y" | "/c":  # Just go to the super query, which queries the LM for the next action
+            match command := self._prompt_and_handle_special(
+                "[bold yellow]>[/bold yellow] "
+            ):
+                case (
+                    "/y" | "/c"
+                ):  # Just go to the super query, which queries the LM for the next action
                     pass
                 case _:
                     msg = {"content": f"\n```bash\n{command}\n```"}
@@ -86,9 +102,14 @@ class InteractiveAgent(DefaultAgent):
                 "[green]Type a comment/command[/green] (/h for available commands)"
                 "\n[bold yellow]>[/bold yellow] "
             ).strip()
-            if not interruption_message or interruption_message in self._MODE_COMMANDS_MAPPING:
+            if (
+                not interruption_message
+                or interruption_message in self._MODE_COMMANDS_MAPPING
+            ):
                 interruption_message = "Temporary interruption caught."
-            raise NonTerminatingException(f"Interrupted by user: {interruption_message}")
+            raise NonTerminatingException(
+                f"Interrupted by user: {interruption_message}"
+            )
 
     def execute_action(self, action: dict) -> dict:
         # Override the execute_action method to handle user confirmation
@@ -97,7 +118,9 @@ class InteractiveAgent(DefaultAgent):
         return super().execute_action(action)
 
     def should_ask_confirmation(self, action: str) -> bool:
-        return self.config.mode == "confirm" and not any(re.match(r, action) for r in self.config.whitelist_actions)
+        return self.config.mode == "confirm" and not any(
+            re.match(r, action) for r in self.config.whitelist_actions
+        )
 
     def ask_confirmation(self) -> None:
         prompt = (
@@ -109,7 +132,9 @@ class InteractiveAgent(DefaultAgent):
             case "" | "/y":
                 pass  # confirmed, do nothing
             case "/u":  # Skip execution action and get back to query
-                raise NonTerminatingException("Command not executed. Switching to human mode")
+                raise NonTerminatingException(
+                    "Command not executed. Switching to human mode"
+                )
             case _:
                 raise NonTerminatingException(
                     f"Command not executed. The user rejected your command with the following message: {user_input}"
@@ -133,7 +158,9 @@ class InteractiveAgent(DefaultAgent):
                     f"[bold red]Already in {self.config.mode} mode.[/bold red]\n{prompt}"
                 )
             self.config.mode = self._MODE_COMMANDS_MAPPING[user_input]
-            console.print(f"Switched to [bold green]{self.config.mode}[/bold green] mode.")
+            console.print(
+                f"Switched to [bold green]{self.config.mode}[/bold green] mode."
+            )
             return user_input
         return user_input
 
@@ -149,5 +176,7 @@ class InteractiveAgent(DefaultAgent):
                     end="",
                 )
                 if new_task := self._prompt_and_handle_special("").strip():
-                    raise NonTerminatingException(f"The user added a new task: {new_task}")
+                    raise NonTerminatingException(
+                        f"The user added a new task: {new_task}"
+                    )
             raise e

@@ -18,11 +18,15 @@ def _setup_root_logger() -> None:
     logger.addHandler(_handler)
 
 
-def add_file_handler(path: Path | str, level: int = logging.DEBUG, *, print_path: bool = True) -> None:
+def add_file_handler(
+    path: Path | str, level: int = logging.DEBUG, *, print_path: bool = True
+) -> None:
     logger = logging.getLogger("minisweagent")
     handler = logging.FileHandler(path)
     handler.setLevel(level)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     if print_path:

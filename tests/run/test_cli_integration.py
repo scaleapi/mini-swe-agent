@@ -32,7 +32,11 @@ def test_configure_if_first_time_called():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -72,7 +76,11 @@ def test_mini_command_calls_run_interactive():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test", "mode": "confirm"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test", "mode": "confirm"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -117,7 +125,11 @@ def test_mini_v_command_calls_run_textual():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test", "mode": "confirm"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test", "mode": "confirm"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -164,7 +176,11 @@ def test_mini_calls_prompt_when_no_task_provided():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test", "mode": "confirm"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test", "mode": "confirm"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -211,7 +227,11 @@ def test_mini_v_calls_prompt_when_no_task_provided():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test", "mode": "confirm"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test", "mode": "confirm"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -305,7 +325,11 @@ def test_yolo_mode_sets_correct_agent_config():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -350,7 +374,11 @@ def test_confirm_mode_sets_correct_agent_config():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -550,7 +578,11 @@ def test_exit_immediately_flag_sets_confirm_exit_false():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Create mock agent with config
         mock_agent = Mock()
@@ -592,7 +624,11 @@ def test_no_exit_immediately_flag_sets_confirm_exit_true():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Create mock agent with config
         mock_agent = Mock()
@@ -636,7 +672,11 @@ def test_exit_immediately_flag_with_typer_runner():
         mock_config_path = Mock()
         mock_config_path.read_text.return_value = ""
         mock_get_config_path.return_value = mock_config_path
-        mock_yaml_load.return_value = {"agent": {"system_template": "test"}, "env": {}, "model": {}}
+        mock_yaml_load.return_value = {
+            "agent": {"system_template": "test"},
+            "env": {},
+            "model": {},
+        }
 
         # Setup mock agent instance
         mock_agent = Mock()
@@ -648,7 +688,9 @@ def test_exit_immediately_flag_with_typer_runner():
         mock_interactive_agent_class.return_value = mock_agent
 
         runner = CliRunner()
-        result = runner.invoke(app, ["--task", "Test task", "--exit-immediately", "--model", "test-model"])
+        result = runner.invoke(
+            app, ["--task", "Test task", "--exit-immediately", "--model", "test-model"]
+        )
 
         assert result.exit_code == 0
         mock_interactive_agent_class.assert_called_once()

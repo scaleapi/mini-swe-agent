@@ -27,7 +27,9 @@ class LitellmModelConfig:
     litellm_model_registry: Path | str | None = os.getenv("LITELLM_MODEL_REGISTRY_PATH")
     set_cache_control: Literal["default_end"] | None = None
     """Set explicit cache control markers, for example for Anthropic models"""
-    cost_tracking: Literal["default", "ignore_errors"] = os.getenv("MSWEA_COST_TRACKING", "default")
+    cost_tracking: Literal["default", "ignore_errors"] = os.getenv(
+        "MSWEA_COST_TRACKING", "default"
+    )
     """Cost tracking mode for this model. Can be "default" or "ignore_errors" (ignore errors/missing cost info)"""
 
 
@@ -36,11 +38,18 @@ class LitellmModel:
         self.config = config_class(**kwargs)
         self.cost = 0.0
         self.n_calls = 0
-        if self.config.litellm_model_registry and Path(self.config.litellm_model_registry).is_file():
-            litellm.utils.register_model(json.loads(Path(self.config.litellm_model_registry).read_text()))
+        if (
+            self.config.litellm_model_registry
+            and Path(self.config.litellm_model_registry).is_file()
+        ):
+            litellm.utils.register_model(
+                json.loads(Path(self.config.litellm_model_registry).read_text())
+            )
 
     @retry(
-        stop=stop_after_attempt(int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))),
+        stop=stop_after_attempt(
+            int(os.getenv("MSWEA_MODEL_RETRY_STOP_AFTER_ATTEMPT", "10"))
+        ),
         wait=wait_exponential(multiplier=1, min=4, max=60),
         before_sleep=before_sleep_log(logger, logging.WARNING),
         retry=retry_if_not_exception_type(
@@ -58,7 +67,9 @@ class LitellmModel:
     def _query(self, messages: list[dict[str, str]], **kwargs):
         try:
             return litellm.completion(
-                model=self.config.model_name, messages=messages, **(self.config.model_kwargs | kwargs)
+                model=self.config.model_name,
+                messages=messages,
+                **(self.config.model_kwargs | kwargs),
             )
         except litellm.exceptions.AuthenticationError as e:
             e.message += " You can permanently set your API key with `mini-extra config set KEY VALUE`."
@@ -96,4 +107,7 @@ class LitellmModel:
         }
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config) | {"n_model_calls": self.n_calls, "model_cost": self.cost}
+        return asdict(self.config) | {
+            "n_model_calls": self.n_calls,
+            "model_cost": self.cost,
+        }
