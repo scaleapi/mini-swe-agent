@@ -1,4 +1,4 @@
-from minisweagent.run.utils.log import get_logger
+from minisweagent.utils.log import get_logger
 from pathlib import Path
 import json
 
