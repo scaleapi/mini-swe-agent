@@ -128,7 +128,8 @@ class ProgressTrackingAgent(DefaultAgent):
 def get_environment_for_instance(config: dict, instance: BatchInstance) -> Environment:
     """Create an environment for a specific instance."""
     env_config = config.setdefault("environment", {})
-    env_config["environment_class"] = env_config.get("environment_class", "modal")
+    env_config["environment_class"] = env_config.get(
+        "environment_class", "modal")
 
     if instance.image_name:
         env_class = env_config["environment_class"]
@@ -325,7 +326,8 @@ def process_instance(
     if skip_status := should_skip_instance(
         output_dir, instance_id, run_config.redo_existing
     ):
-        progress_manager.on_instance_end(instance_id, f"skipped ({skip_status})")
+        progress_manager.on_instance_end(
+            instance_id, f"skipped ({skip_status})")
         remove_instance_log_handlers(instance_id)
         return
 
@@ -339,7 +341,8 @@ def process_instance(
     model = get_model(config=config.get("model", {}))
     task = instance.problem_statement
 
-    progress_manager.update_instance_status(instance_id, "Starting environment")
+    progress_manager.update_instance_status(
+        instance_id, "Starting environment")
 
     agent = None
     extra_info = None
@@ -354,7 +357,8 @@ def process_instance(
             **config.get("agent", {}),
         )
         exit_status, result, patch = agent.run(task, problem_statement=task)
-        logger.info(f"Exit status: {exit_status}, Result: {result}, Patch: {patch}")
+        logger.info(
+            f"Exit status: {exit_status}, Result: {result}, Patch: {patch}")
     except KeyboardInterrupt:
         logger.info(f"Keyboard interrupt for instance {instance_id}")
         exit_status, result, patch = "KeyboardInterrupt", "User interrupted", ""
@@ -362,7 +366,8 @@ def process_instance(
         if run_config.raise_exceptions:
             raise
     except Exception as e:
-        logger.error(f"Error processing instance {instance_id}: {e}", exc_info=True)
+        logger.error(
+            f"Error processing instance {instance_id}: {e}", exc_info=True)
         exit_status, result, patch = type(e).__name__, str(e), ""
         extra_info = {"traceback": traceback.format_exc()}
         if run_config.raise_exceptions:
@@ -378,7 +383,7 @@ def process_instance(
             print_fct=logger.info,
         )
         save_pred_file(
-            output_dir / f"{instance_id}/{instance_id}.preds.json",
+            output_dir / f"{instance_id}/{instance_id}.pred",
             output_dir.name,
             instance_id,
             patch,
@@ -415,7 +420,8 @@ def load_instances(run_config: RunBatchConfig) -> list[BatchInstance]:
         )
     elif run_config.source == "huggingface":
         if not run_config.dataset_name:
-            raise ValueError("--dataset-name is required when --source=huggingface")
+            raise ValueError(
+                "--dataset-name is required when --source=huggingface")
         return load_instances_from_huggingface(
             dataset_name=run_config.dataset_name,
             split=run_config.split,
