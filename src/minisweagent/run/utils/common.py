@@ -319,8 +319,7 @@ class BasicCLI:
             self.logger.info(msg)
             txt = config_file.read_text()
             if not txt.strip():
-                self.logger.warning(
-                    f"Default config file {config_file} is empty")
+                self.logger.warning(f"Default config file {config_file} is empty")
                 config_merged = {}
             else:
                 config_merged = yaml.safe_load(txt)
@@ -335,7 +334,8 @@ class BasicCLI:
 
         try:
             config: BaseSettings = CliApp.run(
-                self.arg_type, remaining_args, **config_merged, cli_exit_on_error=False)  # type: ignore
+                self.arg_type, remaining_args, **config_merged, cli_exit_on_error=False
+            )  # type: ignore
         except ValidationError as e:
             rich_print(
                 Panel.fit(

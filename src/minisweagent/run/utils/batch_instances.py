@@ -14,16 +14,22 @@ from minisweagent.utils.log import logger
 class BatchInstance:
     """A single instance in a batch of instances."""
 
-    instance_id: str = field(
-        metadata={"help": "Unique identifier for the instance."})
+    instance_id: str = field(metadata={"help": "Unique identifier for the instance."})
     problem_statement: str = field(
-        metadata={"help": "Description of the problem to solve."})
+        metadata={"help": "Description of the problem to solve."}
+    )
     base_commit: str = field(
-        metadata={"help": "Git commit hash to use as the starting point."})
-    image_name: str = field(default="", metadata={
-                            "help": "Docker image name for the environment."})
-    repo_name: str = field(default="app", metadata={
-                           "help": "Name of the directory under `/` where the repository is located."})
+        metadata={"help": "Git commit hash to use as the starting point."}
+    )
+    image_name: str = field(
+        default="", metadata={"help": "Docker image name for the environment."}
+    )
+    repo_name: str = field(
+        default="app",
+        metadata={
+            "help": "Name of the directory under `/` where the repository is located."
+        },
+    )
     extra_fields: dict[str, Any] = field(default_factory=dict)
 
 
@@ -67,15 +73,13 @@ def filter_instances(
     ]
     after_filter = len(instances)
     if before_filter != after_filter:
-        logger.info(
-            f"Instance filter: {before_filter} -> {after_filter} instances")
+        logger.info(f"Instance filter: {before_filter} -> {after_filter} instances")
 
     if slice_spec:
         instances = instances[_slice_spec_to_slice(slice_spec)]
         after_slice = len(instances)
         if before_filter != after_slice:
-            logger.info(
-                f"Instance slice: {before_filter} -> {after_slice} instances")
+            logger.info(f"Instance slice: {before_filter} -> {after_slice} instances")
 
     return instances
 
