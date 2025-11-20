@@ -383,7 +383,7 @@ def run_sweagent_wrapper(config):
         )
     else:
         logger.info("Running SWE Agent Wrapper for a single sample")
-        run_sweagent(config, output_dir)
+        run_sweagent(config, output_dir + f"/sample_1")
 
 
 def main():

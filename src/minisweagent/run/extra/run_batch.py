@@ -282,6 +282,19 @@ def save_instance_config(output_dir: Path, instance: BatchInstance, agent_config
     )
 
 
+def save_pred_file(
+    output_path: Path, model_name_or_path: str, instance_id: str, model_patch: str
+):
+    """Save the predictions file for a single instance."""
+    output_data = {
+        "model_name_or_path": model_name_or_path,
+        "instance_id": instance_id,
+        "model_patch": model_patch,
+    }
+    with open(output_path, "w") as f:
+        json.dump(output_data, f, indent=2)
+
+
 def process_instance(
     instance: BatchInstance,
     output_dir: Path,
@@ -364,6 +377,12 @@ def process_instance(
             instance_id=instance_id,
             print_fct=logger.info,
         )
+        save_pred_file(
+            output_dir / f"{instance_id}/{instance_id}.preds.json",
+            output_dir.name,
+            instance_id,
+            patch,
+        )
         if agent and hasattr(agent, "model"):
             update_preds_file(
                 output_dir / "preds.json",
@@ -440,7 +459,7 @@ def main(
     random_delay_multiplier: float = typer.Option(0.3, "--random-delay-multiplier", help="Random startup delay multiplier", rich_help_panel="Advanced"),
 ) -> None:
     # fmt: on
-    
+
     # Create run configuration
     run_config = RunBatchConfig(
         instances_path=instances_path,
@@ -451,7 +470,8 @@ def main(
         filter_spec=filter_spec,
         slice_spec=slice_spec,
         shuffle=shuffle,
-        output_dir=Path(output) if output else Path("output") / getpass.getuser() / f"run_{int(time.time())}",
+        output_dir=Path(output) if output else Path("output") /
+        getpass.getuser() / f"run_{int(time.time())}",
         workers=workers,
         model=model,
         model_class=model_class,
@@ -471,27 +491,28 @@ def main(
         deployment_startup_timeout=deployment_startup_timeout,
         random_delay_multiplier=random_delay_multiplier,
     )
-    
+
     # Setup output directory
     run_config.output_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Results will be saved to {run_config.output_dir}")
-    
+
     # Add main log file handler
     add_file_handler(run_config.output_dir / "run_batch.log", id_="main")
-    
+
     # Load agent configuration
     config_path = get_config_path(run_config.config_path)
     logger.info(f"Loading agent config from '{config_path}'")
     config = yaml.safe_load(config_path.read_text())
-    
+
     # Override config with CLI options - Model settings
     if run_config.model is not None:
         config.setdefault("model", {})["model_name"] = run_config.model
     if run_config.model_class is not None:
         config.setdefault("model", {})["model_class"] = run_config.model_class
-    
+
     # For LiteLLM model, parameters go into model_kwargs
-    model_kwargs = config.setdefault("model", {}).setdefault("model_kwargs", {})
+    model_kwargs = config.setdefault(
+        "model", {}).setdefault("model_kwargs", {})
     if run_config.model_api_base is not None:
         model_kwargs["api_base"] = run_config.model_api_base
     if run_config.model_api_key is not None:
@@ -500,15 +521,18 @@ def main(
         model_kwargs["temperature"] = run_config.model_temperature
     if run_config.model_top_p is not None:
         model_kwargs["top_p"] = run_config.model_top_p
-    
+
     # Model limits
     if run_config.per_instance_call_limit > 0:
-        config.setdefault("agent", {})["step_limit"] = run_config.per_instance_call_limit
+        config.setdefault("agent", {})[
+            "step_limit"] = run_config.per_instance_call_limit
     if run_config.per_instance_cost_limit > 0:
-        config.setdefault("agent", {})["cost_limit"] = run_config.per_instance_cost_limit
+        config.setdefault("agent", {})[
+            "cost_limit"] = run_config.per_instance_cost_limit
     if run_config.total_cost_limit > 0:
-        config.setdefault("model", {})["total_cost_limit"] = run_config.total_cost_limit
-    
+        config.setdefault("model", {})[
+            "total_cost_limit"] = run_config.total_cost_limit
+
     # Environment settings
     # Handle deployment-specific parameters (mainly for Modal)
     # This must come BEFORE environment_class to allow --deployment-type to override
@@ -516,36 +540,39 @@ def main(
         # If deployment_type is "modal", set environment_class to modal (override any existing value)
         if run_config.deployment_type.lower() == "modal":
             config.setdefault("environment", {})
-            config["environment"]["environment_class"] = "modal"  # Direct assignment to override
-    
+            # Direct assignment to override
+            config["environment"]["environment_class"] = "modal"
+
     # Only set environment_class from CLI if explicitly provided AND deployment_type is not set
     if run_config.environment_class is not None and run_config.deployment_type is None:
         config.setdefault("environment", {})
         config["environment"]["environment_class"] = run_config.environment_class
-    
+
     # Pass Modal-specific parameters if using Modal environment
     env_class = config.get("environment", {}).get("environment_class", "")
     if "modal" in env_class.lower():
         if run_config.deployment_install_pipx:
-            config.setdefault("environment", {})["install_pipx"] = run_config.deployment_install_pipx
+            config.setdefault("environment", {})[
+                "install_pipx"] = run_config.deployment_install_pipx
         if run_config.deployment_startup_timeout != 600:
-            config.setdefault("environment", {})["startup_timeout"] = run_config.deployment_startup_timeout
-    
+            config.setdefault("environment", {})[
+                "startup_timeout"] = run_config.deployment_startup_timeout
+
     # Save configuration files
     save_config_files(run_config.output_dir, run_config, config)
-    
+
     # Load instances
     logger.info(f"Loading instances from {run_config.source}...")
     instances = load_instances(run_config)
     logger.info(f"Loaded {len(instances)} instances")
-    
+
     if not instances:
         logger.error("No instances to process!")
         return
-    
+
     # Create progress manager
     progress_manager = RunBatchProgressManager(
-        len(instances), 
+        len(instances),
         run_config.output_dir / "exit_statuses.yaml"
     )
 
@@ -558,7 +585,8 @@ def main(
                 pass
             except Exception as e:
                 instance_id = futures[future]
-                logger.error(f"Error in future for instance {instance_id}: {e}", exc_info=True)
+                logger.error(
+                    f"Error in future for instance {instance_id}: {e}", exc_info=True)
                 progress_manager.on_uncaught_exception(instance_id, e)
 
     # Run instances
@@ -566,10 +594,10 @@ def main(
         with concurrent.futures.ThreadPoolExecutor(max_workers=run_config.workers) as executor:
             futures = {
                 executor.submit(
-                    process_instance, 
-                    instance, 
-                    run_config.output_dir, 
-                    config, 
+                    process_instance,
+                    instance,
+                    run_config.output_dir,
+                    config,
                     progress_manager,
                     run_config,
                 ): instance.instance_id
@@ -578,12 +606,13 @@ def main(
             try:
                 process_futures(futures)
             except KeyboardInterrupt:
-                logger.info("Cancelling pending jobs. Press ^C again to exit immediately.")
+                logger.info(
+                    "Cancelling pending jobs. Press ^C again to exit immediately.")
                 for future in futures:
                     if not future.running() and not future.done():
                         future.cancel()
                 process_futures(futures)
-    
+
     logger.info("Batch run complete!")
     logger.info(f"Results saved to {run_config.output_dir}")
 
