@@ -233,6 +233,7 @@ class ModalDeployment(AbstractDeployment):
         self.logger.info(
             f"Sandbox ({self._sandbox.object_id}) created in {elapsed_sandbox_creation:.2f}s"
         )
+        self.logger.info(f"Using modal image id: {self._image.object_id}")
         self.logger.info(f"Check sandbox logs at {self.get_modal_log_url()}")
         self.logger.info(f"Sandbox created with id {self._sandbox.object_id}")
         await asyncio.sleep(1)
