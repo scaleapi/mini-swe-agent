@@ -26,6 +26,16 @@ class SwerexDockerEnvironment:
         )
         asyncio.run(self.deployment.start())
 
+        # Determine working directory by executing pwd in the container
+        self.working_dir = self._get_working_dir()
+
+    def _get_working_dir(self) -> str:
+        """Determine the current working directory in the container."""
+        result = self.execute("pwd")
+        if result["returncode"] != 0:
+            return self.config.cwd
+        return result["output"].strip()
+
     def execute(
         self, command: str, cwd: str = "", *, timeout: int | None = None
     ) -> dict[str, Any]:
@@ -48,4 +58,4 @@ class SwerexDockerEnvironment:
         }
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config)
+        return asdict(self.config) | {"working_dir": self.working_dir}

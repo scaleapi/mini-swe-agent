@@ -23,6 +23,11 @@ subcommands = [
         ["swebench-single"],
         "Evaluate on SWE-bench (single instance)",
     ),
+    (
+        "minisweagent.run.extra.run_batch",
+        ["run-batch"],
+        "Run mini-SWE-agent on instances file (batch mode)",
+    ),
 ]
 
 

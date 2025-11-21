@@ -162,23 +162,23 @@ def process_instance(
             instance_id=instance_id,
             **config.get("agent", {}),
         )
-        exit_status, result = agent.run(task)
+        exit_status, result, patch = agent.run(task)
     except Exception as e:
         logger.error(f"Error processing instance {instance_id}: {e}", exc_info=True)
-        exit_status, result = type(e).__name__, str(e)
+        exit_status, result, patch = type(e).__name__, str(e), ""
         extra_info = {"traceback": traceback.format_exc()}
     finally:
         save_traj(
             agent,
             instance_dir / f"{instance_id}.traj.json",
             exit_status=exit_status,
-            result=result,
+            result=patch,
             extra_info=extra_info,
             instance_id=instance_id,
             print_fct=logger.info,
         )
         update_preds_file(
-            output_dir / "preds.json", instance_id, model.config.model_name, result
+            output_dir / "preds.json", instance_id, model.config.model_name, patch
         )
         progress_manager.on_instance_end(instance_id, exit_status)
 

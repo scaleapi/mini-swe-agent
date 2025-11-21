@@ -121,4 +121,8 @@ class BubblewrapEnvironment:
         self.cleanup()
 
     def get_template_vars(self) -> dict[str, Any]:
-        return asdict(self.config) | platform.uname()._asdict()
+        return (
+            asdict(self.config)
+            | platform.uname()._asdict()
+            | {"working_dir": str(self.working_dir)}
+        )

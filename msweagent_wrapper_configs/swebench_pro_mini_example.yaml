@@ -1,0 +1,17 @@
+output_dir: ./msweagent_results/swebench_pro_mini_example
+sweagent_command: |
+  mini-extra run-batch \
+    --config config/swebp.yaml \
+    --output-dir {output_dir} \
+    --num-workers 2 \
+    --random-delay-multiplier 0.5 \
+    --source file \
+    --instances-path data/swebench_pro_mini_example_instances.yaml \
+    --no-shuffle \
+    --deployment-type modal \
+    --model litellm_proxy/anthropic/claude-sonnet-4-5 \
+    --model-api-base https://litellm.ml-serving-internal.scale.com/v1 \
+    --model-api-key $OPENAI_API_KEY \
+    --per-instance-cost-limit 0 \
+    --per-instance-call-limit 250
+

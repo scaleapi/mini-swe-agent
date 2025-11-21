@@ -96,15 +96,16 @@ def main(
         agent_class = TextualAgent
 
     agent = agent_class(model, env, **config.get("agent", {}))
-    exit_status, result, extra_info = None, None, None
+    exit_status, result, patch, extra_info = None, None, None, None
     try:
-        exit_status, result = agent.run(task)  # type: ignore[arg-type]
+        exit_status, result, patch = agent.run(task)  # type: ignore[arg-type]
     except Exception as e:
         logger.error(f"Error running agent: {e}", exc_info=True)
-        exit_status, result = type(e).__name__, str(e)
+        exit_status, result, patch = type(e).__name__, str(e), ""
         extra_info = {"traceback": traceback.format_exc()}
     finally:
-        save_traj(agent, output, exit_status=exit_status, result=result, extra_info=extra_info)  # type: ignore[arg-type]
+        if output:
+            save_traj(agent, output, exit_status=exit_status, result=patch, extra_info=extra_info)  # type: ignore[arg-type]
     return agent
 
 

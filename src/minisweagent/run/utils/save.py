@@ -21,7 +21,7 @@ def _asdict(obj: Any) -> dict:
 
 def save_traj(
     agent: Agent | None,
-    path: Path | None,
+    path: Path,
     *,
     print_path: bool = True,
     exit_status: str | None = None,
@@ -42,8 +42,6 @@ def save_traj(
         **kwargs: Additional information to save (will be merged into top level)
 
     """
-    if path is None:
-        return
     data = {
         "info": {
             "exit_status": exit_status,
